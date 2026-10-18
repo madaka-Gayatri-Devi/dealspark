@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Affiliate & Pricing Disclaimer — DealSpark{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="bg-white p-4 p-md-5 rounded-4 shadow-sm border">
+        <h1 class="h2 fw-bold mb-3">Affiliate & Pricing Disclaimer</h1>
+        <p class="text-muted small mb-4">Last Updated: October 2026</p>
+
+        <div class="alert alert-warning d-flex align-items-center gap-2 mb-4" role="alert">
+          <i class="bi bi-shield-exclamation fs-4"></i>
+          <div>
+            Please read this disclaimer carefully before relying on pricing data or making purchases through links on DealSpark.
+          </div>
+        </div>
+
+        <h3 class="h4 fw-bold mb-2">1. Affiliate Disclosure</h3>
+        <p class="text-secondary">
+          DealSpark is an affiliate marketing and price comparison website. We are a participant in associate and affiliate advertising programs designed to provide a means for sites to earn advertising fees by linking to commercial retailer sites including, but not limited to, Amazon.in, Flipkart.com, Myntra.com, Ajio.com, Croma.com, and Tata CLiQ.
+        </p>
+        <p class="text-secondary">
+          When you click on links to merchant sites and make a purchase, we may receive an affiliate commission. This commission comes at <strong>no extra cost to you</strong>.
+        </p>
+
+        <h3 class="h4 fw-bold mt-4 mb-2">2. Real-Time Pricing and Availability</h3>
+        <p class="text-secondary">
+          Product prices and stock availability are provided for informational purposes only and are determined exclusively by the respective merchants. Prices and offers change rapidly on merchant platforms. While we strive to verify prices frequently, the actual price displayed on the merchant's website at the time of purchase will always apply.
+        </p>
+
+        <h3 class="h4 fw-bold mt-4 mb-2">3. No Handling of Payments</h3>
+        <p class="text-secondary">
+          DealSpark never collects, stores, or processes your credit card details, UPI IDs, or payment credentials. All transactions, order tracking, shipping, and returns are handled entirely by the merchant where you complete your order.
+        </p>
+
+        <div class="mt-4 pt-3 border-top">
+          <a href="{{ url_for('main.index') }}" class="btn btn-primary-ds">
+            <i class="bi bi-check2 me-1"></i> I Understand, Back to Deals
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,1289 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block title %}
+  {% if active_tab == 'products' %}Manage Products — DealSpark Admin
+  {% elif active_tab == 'deals' %}Manage Deals — DealSpark Admin
+  {% elif active_tab == 'categories' %}Categories — DealSpark Admin
+  {% elif active_tab == 'merchants' %}Partner Merchants — DealSpark Admin
+  {% elif active_tab == 'analytics' %}Click Analytics — DealSpark Admin
+  {% else %}Admin Dashboard — DealSpark{% endif %}
+{% endblock %}
+
+{% block topbar_title %}
+  {% if active_tab == 'products' %}Products Catalog
+  {% elif active_tab == 'deals' %}Active Deals
+  {% elif active_tab == 'categories' %}Product Categories
+  {% elif active_tab == 'merchants' %}Partner Merchants
+  {% elif active_tab == 'analytics' %}Outbound Click Analytics
+  {% else %}Dashboard Overview{% endif %}
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid px-0">
+
+  <!-- SmartLearn-Inspired Welcome Hero Banner -->
+  <div class="ds-hero-banner d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3">
+    <div>
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-2 py-1 small fw-bold">
+          <i class="bi bi-shield-lock-fill me-1"></i> Authorized Admin
+        </span>
+        <span class="text-muted small">Logged in as {{ current_user.email }}</span>
+      </div>
+      <h2 class="ds-hero-title mb-1">Welcome back, {{ current_user.display_name or 'Administrator' }}! 👋</h2>
+      <p class="ds-hero-subtitle mb-0">DealSpark Control Center • Real-Time Deals, Pricing & Outbound Affiliate Analytics</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <button type="button" class="btn btn-primary-ds btn-sm d-inline-flex align-items-center gap-1 shadow-sm px-3 py-2 fw-bold" data-bs-toggle="modal" data-bs-target="#addProductModal">
+        <i class="bi bi-plus-circle-fill"></i>
+        <span>Add / Import Deal</span>
+      </button>
+      <a href="{{ url_for('main.index') }}" target="_blank" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1 px-3 py-2 fw-semibold">
+        <i class="bi bi-box-arrow-up-right"></i>
+        <span>View Live Site</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- 6-Card Summary Metrics Grid -->
+  <div class="row g-3 g-xl-4 mb-4">
+    <!-- Card 1: Total Products -->
+    <div class="col-sm-6 col-lg-4 col-xl-2">
+      <div class="ds-stat-card">
+        <div class="ds-stat-icon-wrapper ds-stat-icon-orange">
+          <i class="bi bi-box-seam"></i>
+        </div>
+        <div>
+          <div class="ds-stat-label">Total Products</div>
+          <div class="ds-stat-value">{{ stats.total_products if stats else 0 }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2: Published Deals -->
+    <div class="col-sm-6 col-lg-4 col-xl-2">
+      <div class="ds-stat-card">
+        <div class="ds-stat-icon-wrapper ds-stat-icon-green">
+          <i class="bi bi-tag-fill"></i>
+        </div>
+        <div>
+          <div class="ds-stat-label">Published Deals</div>
+          <div class="ds-stat-value text-success">{{ stats.published_products if stats else 0 }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 3: Unpublished Drafts -->
+    <div class="col-sm-6 col-lg-4 col-xl-2">
+      <div class="ds-stat-card">
+        <div class="ds-stat-icon-wrapper ds-stat-icon-slate">
+          <i class="bi bi-eye-slash-fill"></i>
+        </div>
+        <div>
+          <div class="ds-stat-label">Draft / Hidden</div>
+          <div class="ds-stat-value">{{ stats.unpublished_products if stats else 0 }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 4: Expired Deals -->
+    <div class="col-sm-6 col-lg-4 col-xl-2">
+      <div class="ds-stat-card">
+        <div class="ds-stat-icon-wrapper ds-stat-icon-red">
+          <i class="bi bi-clock-history"></i>
+        </div>
+        <div>
+          <div class="ds-stat-label">Expired Deals</div>
+          <div class="ds-stat-value text-danger">{{ stats.expired_deals if stats else 0 }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 5: Categories -->
+    <div class="col-sm-6 col-lg-4 col-xl-2">
+      <div class="ds-stat-card">
+        <div class="ds-stat-icon-wrapper ds-stat-icon-blue">
+          <i class="bi bi-collection-fill"></i>
+        </div>
+        <div>
+          <div class="ds-stat-label">Categories</div>
+          <div class="ds-stat-value">{{ stats.total_categories if stats else 0 }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 6: Outbound Clicks -->
+    <div class="col-sm-6 col-lg-4 col-xl-2">
+      <div class="ds-stat-card">
+        <div class="ds-stat-icon-wrapper ds-stat-icon-amber">
+          <i class="bi bi-cursor-fill"></i>
+        </div>
+        <div>
+          <div class="ds-stat-label">Store Clicks</div>
+          <div class="ds-stat-value text-warning">{{ stats.total_clicks if stats else 0 }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SmartLearn-Inspired Action Highlight Strip -->
+  <div class="alert alert-light border shadow-sm rounded-4 p-3 mb-4 d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3">
+    <div class="d-flex align-items-center gap-3">
+      <div class="p-2 bg-primary bg-opacity-10 text-primary rounded-3 fs-4">
+        <i class="bi bi-magic"></i>
+      </div>
+      <div>
+        <h6 class="fw-bold mb-0 text-dark">Automated Product Import Ready</h6>
+        <span class="text-muted small">Paste any Amazon India, Flipkart, or shopping URL to automatically extract details and savings.</span>
+      </div>
+    </div>
+    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1 fw-bold text-nowrap" data-bs-toggle="modal" data-bs-target="#addProductModal">
+      <i class="bi bi-link-45deg me-1"></i> Paste Shopping URL
+    </button>
+  </div>
+
+  <!-- Tab Content Sections -->
+  {% if active_tab == 'products' %}
+    <!-- ==================== MANAGE PRODUCTS ==================== -->
+    <div class="ds-card">
+      <div class="ds-card-header flex-wrap">
+        <div>
+          <h5 class="fw-bold mb-0 text-dark">All Products Catalog</h5>
+          <span class="text-muted small">{{ products|length if products else 0 }} products registered in database</span>
+        </div>
+        <div class="d-flex gap-2">
+          <button type="button" class="btn btn-primary-ds btn-sm" data-bs-toggle="modal" data-bs-target="#addProductModal">
+            <i class="bi bi-plus-circle me-1"></i> Add Product
+          </button>
+        </div>
+      </div>
+      <!-- Product Catalog Search & Filters Bar -->
+      <div class="p-3 bg-light border-bottom">
+        <form method="GET" action="{{ url_for('admin.manage_products') }}" class="row g-2 align-items-center">
+          <div class="col-md-5">
+            <div class="input-group input-group-sm">
+              <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+              <input type="text" name="q" class="form-control" placeholder="Search products by title or keywords..." value="{{ search_query or '' }}">
+              {% if search_query %}
+                <a href="{{ url_for('admin.manage_products') }}" class="btn btn-outline-secondary" title="Clear search"><i class="bi bi-x"></i></a>
+              {% endif %}
+            </div>
+          </div>
+          <div class="col-sm-6 col-md-3">
+            <select name="category_id" class="form-select form-select-sm" onchange="this.form.submit()">
+              <option value="">All Categories</option>
+              {% for cat in categories %}
+                <option value="{{ cat.id }}" {% if selected_category_id and selected_category_id|string == cat.id|string %}selected{% endif %}>{{ cat.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-sm-6 col-md-2">
+            <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+              <option value="" {% if not selected_status %}selected{% endif %}>All Status</option>
+              <option value="published" {% if selected_status == 'published' %}selected{% endif %}>Active Deals</option>
+              <option value="draft" {% if selected_status == 'draft' %}selected{% endif %}>Draft / Hidden</option>
+              <option value="expired" {% if selected_status == 'expired' %}selected{% endif %}>Expired</option>
+            </select>
+          </div>
+          <div class="col-md-2 d-flex gap-1">
+            <button type="submit" class="btn btn-primary-ds btn-sm w-100 fw-bold">Filter</button>
+            {% if search_query or selected_category_id or selected_status %}
+              <a href="{{ url_for('admin.manage_products') }}" class="btn btn-outline-secondary btn-sm" title="Reset Filters"><i class="bi bi-arrow-counterclockwise"></i></a>
+            {% endif %}
+          </div>
+        </form>
+      </div>
+      <div class="p-0">
+        {% if products %}
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light text-uppercase small" style="font-size: 0.75rem; letter-spacing: 0.05em;">
+                <tr>
+                  <th class="ps-4">Product Deal</th>
+                  <th>Category</th>
+                  <th>Merchant</th>
+                  <th>Pricing & Savings</th>
+                  <th>Status</th>
+                  <th>Clicks</th>
+                  <th class="text-end pe-4">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for p in products %}
+                  <tr>
+                    <td class="ps-4">
+                      <div class="d-flex align-items-center gap-3">
+                        <img src="{{ p.image_url }}" alt="{{ p.title }}" class="rounded-3 border bg-white p-1" style="width: 48px; height: 48px; object-fit: contain;">
+                        <div>
+                          <div class="fw-bold text-dark text-truncate" style="max-width: 280px;" title="{{ p.title }}">{{ p.title }}</div>
+                          <div class="d-flex align-items-center gap-2 mt-1">
+                            <a href="{{ url_for('main.deal_detail', slug=p.slug) }}" target="_blank" class="small text-muted text-decoration-none">
+                              <i class="bi bi-box-arrow-up-right me-1"></i>/deal/{{ p.slug[:20] }}...
+                            </a>
+                            {% if p.is_featured %}
+                              <span class="badge bg-warning bg-opacity-25 text-warning border border-warning border-opacity-25 rounded-pill px-2 py-0 small fw-bold" style="font-size: 0.68rem;">Featured</span>
+                            {% endif %}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="badge bg-light text-dark border rounded-pill px-2 py-1">{{ p.category.name if p.category else 'N/A' }}</span>
+                    </td>
+                    <td>
+                      <span class="badge bg-light text-dark border rounded-pill px-2 py-1">{{ p.merchant.name if p.merchant else 'N/A' }}</span>
+                    </td>
+                    <td>
+                      <div class="d-flex align-items-baseline gap-1">
+                        <span class="fw-bold text-dark">{{ p.formatted_discounted_price }}</span>
+                        <span class="text-muted text-decoration-line-through small">{{ p.formatted_original_price }}</span>
+                      </div>
+                      <div class="d-flex align-items-center gap-1 mt-1">
+                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-2 py-0 small fw-bold">{{ p.discount_percentage }}% OFF</span>
+                        {% if p.is_price_verified %}
+                          <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 rounded-pill px-2 py-0 small fw-bold" title="Price verified"><i class="bi bi-patch-check-fill"></i></span>
+                        {% endif %}
+                      </div>
+                    </td>
+                    <td>
+                      {% if p.is_active_deal %}
+                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-2 py-1 small fw-semibold">Active Deal</span>
+                      {% elif p.is_deal_expired %}
+                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-2 py-1 small fw-semibold">Expired</span>
+                      {% elif not p.is_published %}
+                        <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 rounded-pill px-2 py-1 small fw-semibold">Draft / Hidden</span>
+                      {% else %}
+                        <span class="badge bg-secondary rounded-pill px-2 py-1 small">Unavailable</span>
+                      {% endif %}
+                    </td>
+                    <td>
+                      <span class="fw-bold text-secondary">{{ p.click_count or 0 }}</span>
+                    </td>
+                    <td class="text-end pe-4">
+                      <div class="d-inline-flex align-items-center gap-1">
+                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-2 btn-edit-product"
+                                title="Edit Product Deal"
+                                data-id="{{ p.id }}"
+                                data-title="{{ p.title }}"
+                                data-category-id="{{ p.category_id }}"
+                                data-merchant-id="{{ p.merchant_id }}"
+                                data-original-price="{{ p.original_price }}"
+                                data-discounted-price="{{ p.discounted_price }}"
+                                data-image-url="{{ p.image_url }}"
+                                data-merchant-product-url="{{ p.merchant_product_url }}"
+                                data-affiliate-url="{{ p.affiliate_url or '' }}"
+                                data-description="{{ p.description or '' }}"
+                                data-is-featured="{{ '1' if p.is_featured else '0' }}"
+                                data-is-trending="{{ '1' if p.is_trending else '0' }}"
+                                data-is-price-verified="{{ '1' if p.is_price_verified else '0' }}"
+                                data-is-published="{{ '1' if p.is_published else '0' }}"
+                                data-expiry-date="{{ p.expiry_date.strftime('%Y-%m-%dT%H:%M') if p.expiry_date else '' }}"
+                                data-bs-toggle="modal"
+                                data-bs-target="#editProductModal">
+                          <i class="bi bi-pencil"></i>
+                        </button>
+                        <form action="{{ url_for('admin.toggle_product_status', product_id=p.id) }}" method="POST" class="d-inline">
+                          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                          <button type="submit" class="btn btn-sm btn-outline-secondary rounded-pill px-2" title="{{ 'Unpublish / Hide' if p.is_published else 'Publish Deal' }}">
+                            <i class="bi {{ 'bi-eye-slash' if p.is_published else 'bi-eye' }}"></i>
+                          </button>
+                        </form>
+                        <form action="{{ url_for('admin.delete_product', product_id=p.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Permanently delete {{ p.title[:30] }}?');">
+                          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                          <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2" title="Delete Product">
+                            <i class="bi bi-trash"></i>
+                          </button>
+                        </form>
+                      </div>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="text-center py-5 text-muted">
+            <i class="bi bi-box-seam fs-1 d-block mb-2 text-secondary"></i>
+            <h6 class="fw-bold text-dark">No products configured yet</h6>
+            <p class="small mb-3">Add genuine online shopping deals with automatic savings calculation.</p>
+            <button type="button" class="btn btn-primary-ds btn-sm" data-bs-toggle="modal" data-bs-target="#addProductModal">
+              <i class="bi bi-plus-circle me-1"></i> Add First Product
+            </button>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+  {% elif active_tab == 'deals' %}
+    <!-- ==================== MANAGE DEALS ==================== -->
+    <div class="ds-card">
+      <div class="ds-card-header">
+        <div>
+          <h5 class="fw-bold mb-0 text-dark">Published Active Deals</h5>
+          <span class="text-muted small">Live offers currently visible to public visitors</span>
+        </div>
+      </div>
+      <div class="ds-card-body">
+        {% if deals %}
+          <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3">
+            {% for deal in deals %}
+              <div class="col">
+                {% include 'includes/deal_card.html' %}
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center py-5 text-muted">
+            <i class="bi bi-tag fs-1 d-block mb-2 text-secondary"></i>
+            <h6 class="fw-bold text-dark">No published deals right now</h6>
+            <p class="small mb-3">Deals will appear here and on the public storefront once published.</p>
+            <button type="button" class="btn btn-primary-ds btn-sm" data-bs-toggle="modal" data-bs-target="#addProductModal">
+              <i class="bi bi-plus-circle me-1"></i> Add New Deal
+            </button>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+  {% elif active_tab == 'categories' %}
+    <!-- ==================== CATEGORIES ==================== -->
+    <div class="ds-card">
+      <div class="ds-card-header">
+        <div>
+          <h5 class="fw-bold mb-0 text-dark">Taxonomy & Product Categories</h5>
+          <span class="text-muted small">Active classifications used for navigation and deal filtering</span>
+        </div>
+      </div>
+      <div class="p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light text-uppercase small" style="font-size: 0.75rem; letter-spacing: 0.05em;">
+              <tr>
+                <th class="ps-4">Category Name</th>
+                <th>Slug</th>
+                <th>Display Order</th>
+                <th>Active Deals</th>
+                <th class="text-end pe-4">Public Route</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for cat in categories %}
+                <tr>
+                  <td class="ps-4">
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="p-2 bg-light rounded-circle text-primary">
+                        <i class="bi {{ cat.icon or 'bi-tag' }}"></i>
+                      </div>
+                      <span class="fw-bold text-dark">{{ cat.name }}</span>
+                    </div>
+                  </td>
+                  <td><code>{{ cat.slug }}</code></td>
+                  <td><span class="badge bg-light text-dark border">{{ cat.display_order }}</span></td>
+                  <td>
+                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-2 py-1 fw-bold">
+                      {{ category_counts.get(cat.slug, 0) if category_counts else 0 }} deals
+                    </span>
+                  </td>
+                  <td class="text-end pe-4">
+                    <a href="{{ url_for('main.category_deals', slug=cat.slug) }}" target="_blank" class="btn btn-outline-secondary btn-sm rounded-pill">
+                      <i class="bi bi-box-arrow-up-right me-1"></i> View Deals
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  {% elif active_tab == 'merchants' %}
+    <!-- ==================== MERCHANTS ==================== -->
+    <div class="ds-card">
+      <div class="ds-card-header">
+        <div>
+          <h5 class="fw-bold mb-0 text-dark">Partner Merchants</h5>
+          <span class="text-muted small">Authorized online retail platforms and affiliate network partners</span>
+        </div>
+      </div>
+      <div class="p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light text-uppercase small" style="font-size: 0.75rem; letter-spacing: 0.05em;">
+              <tr>
+                <th class="ps-4">Merchant Name</th>
+                <th>Domain</th>
+                <th>Affiliate Tag</th>
+                <th>Badge Theme</th>
+                <th class="text-end pe-4">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for m in merchants %}
+                <tr>
+                  <td class="ps-4">
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="p-2 rounded-circle" style="background-color: {{ m.badge_color }}20; color: {{ m.badge_color }};">
+                        <i class="bi bi-shop"></i>
+                      </div>
+                      <span class="fw-bold text-dark">{{ m.name }}</span>
+                    </div>
+                  </td>
+                  <td><a href="https://{{ m.domain }}" target="_blank" class="text-muted text-decoration-none"><code>{{ m.domain }}</code></a></td>
+                  <td>
+                    {% if m.affiliate_tag %}
+                      <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-2 py-1">Configured</span>
+                    {% else %}
+                      <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 rounded-pill px-2 py-1">Direct URL</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <span class="badge rounded-pill px-2 py-1 text-white" style="background-color: {{ m.badge_color }};">{{ m.name }}</span>
+                  </td>
+                  <td class="text-end pe-4">
+                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-2 py-1">
+                      <i class="bi bi-check-circle-fill me-1"></i> Active
+                    </span>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  {% elif active_tab == 'analytics' %}
+    <!-- ==================== ANALYTICS ==================== -->
+    <div class="row g-4 mb-4">
+      <div class="col-lg-8">
+        <div class="ds-card h-100">
+          <div class="ds-card-header">
+            <div>
+              <h5 class="fw-bold mb-0 text-dark">Real-Time Outbound Clicks</h5>
+              <span class="text-muted small">User redirection events to merchant and affiliate destination URLs</span>
+            </div>
+          </div>
+          <div class="p-0">
+            {% if recent_clicks %}
+              <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 small">
+                  <thead class="table-light text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.05em;">
+                    <tr>
+                      <th class="ps-4">Date / Time (UTC)</th>
+                      <th>Product</th>
+                      <th>Destination</th>
+                      <th class="text-end pe-4">Anonymized IP</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for c in recent_clicks %}
+                      <tr>
+                        <td class="ps-4 text-nowrap text-muted">{{ c.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                        <td>
+                          <div class="fw-semibold text-dark text-truncate" style="max-width: 220px;" title="{{ c.product.title if c.product else 'N/A' }}">
+                            {{ c.product.title if c.product else 'N/A' }}
+                          </div>
+                        </td>
+                        <td>
+                          <a href="{{ c.destination_url }}" target="_blank" class="text-truncate d-inline-block text-primary text-decoration-none" style="max-width: 220px;" title="{{ c.destination_url }}">
+                            {{ c.destination_url }}
+                          </a>
+                        </td>
+                        <td class="text-end pe-4"><code>{{ c.ip_hash[:12] }}...</code></td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            {% else %}
+              <div class="text-center py-5 text-muted">
+                <i class="bi bi-bar-chart fs-1 d-block mb-2 text-secondary"></i>
+                <h6 class="fw-bold text-dark">No outbound clicks recorded yet</h6>
+                <p class="small mb-0">Outbound clicks are logged authentically when users click 'Buy Now' without fabricated numbers.</p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="ds-card h-100">
+          <div class="ds-card-header">
+            <h6 class="fw-bold mb-0 text-dark">Top Clicked Deals</h6>
+          </div>
+          <div class="ds-card-body p-0">
+            {% if top_clicked_products %}
+              <ul class="list-group list-group-flush">
+                {% for p in top_clicked_products %}
+                  <li class="list-group-item d-flex align-items-center justify-content-between p-3">
+                    <div class="d-flex align-items-center gap-2">
+                      <img src="{{ p.image_url }}" alt="{{ p.title }}" class="rounded-2 border p-1" style="width: 36px; height: 36px; object-fit: contain;">
+                      <div>
+                        <div class="fw-bold small text-truncate" style="max-width: 170px;">{{ p.title }}</div>
+                        <span class="text-muted" style="font-size: 0.75rem;">{{ p.merchant.name if p.merchant else '' }}</span>
+                      </div>
+                    </div>
+                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2 py-1 fw-bold">
+                      {{ p.click_count }} clicks
+                    </span>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <div class="text-center py-4 text-muted small">
+                No deal clicks recorded yet.
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+  {% else %}
+    <!-- ==================== DASHBOARD OVERVIEW ==================== -->
+    <div class="row g-4 mb-4">
+      <!-- Recent Products Section -->
+      <div class="col-xl-8">
+        <div class="ds-card">
+          <div class="ds-card-header">
+            <div>
+              <h5 class="fw-bold mb-0 text-dark">Recent Deal Additions</h5>
+              <span class="text-muted small">Latest shopping deals added to catalog</span>
+            </div>
+            <a href="{{ url_for('admin.manage_products') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+              View All
+            </a>
+          </div>
+          <div class="p-0">
+            {% if recent_products %}
+              <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                  <thead class="table-light text-uppercase small" style="font-size: 0.72rem; letter-spacing: 0.05em;">
+                    <tr>
+                      <th class="ps-4">Deal</th>
+                      <th>Merchant</th>
+                      <th>Deal Price</th>
+                      <th>Discount</th>
+                      <th class="text-end pe-4">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for p in recent_products %}
+                      <tr>
+                        <td class="ps-4">
+                          <div class="d-flex align-items-center gap-2">
+                            <img src="{{ p.image_url }}" alt="{{ p.title }}" class="rounded-2 border p-1 bg-white" style="width: 40px; height: 40px; object-fit: contain;">
+                            <div>
+                              <div class="fw-bold text-dark text-truncate" style="max-width: 240px;">{{ p.title }}</div>
+                              <span class="text-muted small">{{ p.category.name if p.category else 'General' }}</span>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <span class="badge bg-light text-dark border rounded-pill">{{ p.merchant.name if p.merchant else 'N/A' }}</span>
+                        </td>
+                        <td>
+                          <span class="fw-bold text-dark">{{ p.formatted_discounted_price }}</span>
+                        </td>
+                        <td>
+                          <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-2 py-0 small fw-bold">{{ p.discount_percentage }}% OFF</span>
+                        </td>
+                        <td class="text-end pe-4">
+                          {% if p.is_active_deal %}
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-2 py-1 small fw-semibold">Active</span>
+                          {% else %}
+                            <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 rounded-pill px-2 py-1 small fw-semibold">Hidden</span>
+                          {% endif %}
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            {% else %}
+              <div class="text-center py-5 text-muted">
+                <i class="bi bi-box fs-1 d-block mb-2 text-secondary"></i>
+                <h6 class="fw-bold text-dark">No products in catalog yet</h6>
+                <p class="small mb-3">Add genuine online shopping deals with automatic savings calculation.</p>
+                <button type="button" class="btn btn-primary-ds btn-sm" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                  <i class="bi bi-plus-circle me-1"></i> Add First Product
+                </button>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- System & Security Info Cards -->
+      <div class="col-xl-4">
+        <div class="ds-card mb-4">
+          <div class="ds-card-header">
+            <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-shield-check text-success me-2"></i>Security & Permissions</h6>
+          </div>
+          <div class="ds-card-body">
+            <div class="d-flex align-items-center gap-3 mb-3">
+              <div class="p-3 bg-success bg-opacity-10 text-success rounded-circle">
+                <i class="bi bi-lock-fill fs-4"></i>
+              </div>
+              <div>
+                <div class="fw-bold text-dark">Server-Enforced RBAC</div>
+                <div class="text-muted small">Strict administrator role check active</div>
+              </div>
+            </div>
+            <p class="small text-muted mb-3">
+              Only the authorized email (<code>{{ current_user.email }}</code>) can access management functions, add deals, or alter store parameters.
+            </p>
+            <a href="{{ url_for('auth.change_password') }}" class="btn btn-outline-secondary btn-sm w-100 rounded-pill">
+              <i class="bi bi-key me-1"></i> Update Admin Password
+            </a>
+          </div>
+        </div>
+
+        <div class="ds-card">
+          <div class="ds-card-header">
+            <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-lightning-charge-fill text-warning me-2"></i>Quick Navigation</h6>
+          </div>
+          <div class="ds-card-body d-flex flex-column gap-2">
+            <a href="{{ url_for('admin.manage_products') }}" class="p-2 border rounded-3 text-decoration-none text-dark d-flex align-items-center justify-content-between hover-shadow">
+              <span class="small fw-semibold"><i class="bi bi-box-seam me-2 text-primary"></i> Product Catalog</span>
+              <i class="bi bi-chevron-right text-muted small"></i>
+            </a>
+            <a href="{{ url_for('admin.manage_deals') }}" class="p-2 border rounded-3 text-decoration-none text-dark d-flex align-items-center justify-content-between hover-shadow">
+              <span class="small fw-semibold"><i class="bi bi-tag me-2 text-success"></i> Active Deals</span>
+              <i class="bi bi-chevron-right text-muted small"></i>
+            </a>
+            <a href="{{ url_for('admin.manage_categories') }}" class="p-2 border rounded-3 text-decoration-none text-dark d-flex align-items-center justify-content-between hover-shadow">
+              <span class="small fw-semibold"><i class="bi bi-collection me-2 text-info"></i> Categories</span>
+              <i class="bi bi-chevron-right text-muted small"></i>
+            </a>
+            <a href="{{ url_for('admin.analytics') }}" class="p-2 border rounded-3 text-decoration-none text-dark d-flex align-items-center justify-content-between hover-shadow">
+              <span class="small fw-semibold"><i class="bi bi-graph-up me-2 text-warning"></i> Click Analytics</span>
+              <i class="bi bi-chevron-right text-muted small"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+</div>
+
+<!-- ==========================================================================
+     Modal: Add / Import Product Deal (Automatic Import + Image Upload + Manual Override)
+     ========================================================================== -->
+<div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <form action="{{ url_for('admin.add_product') }}" method="POST" enctype="multipart/form-data" id="addProductForm" class="modal-content border-0 shadow-lg rounded-4">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="modal-header border-bottom px-4 py-3 bg-white">
+        <div class="d-flex align-items-center gap-2">
+          <div class="p-2 bg-primary bg-opacity-10 text-primary rounded-circle">
+            <i class="bi bi-plus-circle-fill fs-5"></i>
+          </div>
+          <div>
+            <h5 class="modal-title fw-bold text-dark" id="addProductModalLabel">Add / Import Product Deal</h5>
+            <span class="text-muted small">Automatic metadata import with full manual override capability</span>
+          </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body p-4 bg-white">
+        <!-- Automatic Import URL Section -->
+        <div class="card bg-light border-primary border-opacity-25 rounded-4 p-3 mb-4 shadow-sm">
+          <label class="form-label fw-bold text-dark d-flex align-items-center gap-2 mb-2">
+            <i class="bi bi-lightning-fill text-warning"></i>
+            <span>Automatic Import: Enter Merchant Shopping URL</span>
+          </label>
+          <div class="input-group">
+            <input type="url" id="importUrlInput" class="form-control" placeholder="https://www.amazon.in/dp/... or https://www.flipkart.com/..." aria-label="Shopping URL">
+            <button class="btn btn-primary-ds px-3 fw-bold" type="button" id="btnFetchDetails">
+              <span id="btnFetchSpinner" class="spinner-border spinner-border-sm d-none me-1" role="status" aria-hidden="true"></span>
+              <i class="bi bi-arrow-clockwise me-1" id="btnFetchIcon"></i>
+              <span>Fetch Details</span>
+            </button>
+          </div>
+          <div id="importFeedback" class="small mt-2" style="display: none;"></div>
+        </div>
+
+        <!-- Product Details Form -->
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label fw-semibold">Product Title <span class="text-danger">*</span></label>
+            <input type="text" name="title" id="productTitle" class="form-control rounded-3" placeholder="e.g. Sony WH-1000XM5 Wireless Headphones" required>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Category <span class="text-danger">*</span></label>
+            <select name="category_id" id="productCategory" class="form-select rounded-3" required>
+              <option value="">Select Category</option>
+              {% for cat in categories %}
+                <option value="{{ cat.id }}">{{ cat.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Merchant <span class="text-danger">*</span></label>
+            <select name="merchant_id" id="productMerchant" class="form-select rounded-3" required>
+              <option value="">Select Merchant</option>
+              {% for m in merchants %}
+                <option value="{{ m.id }}">{{ m.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Pricing Fields with Dynamic Savings Calculation -->
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Original Price (₹) <span class="text-danger">*</span></label>
+            <input type="number" step="0.01" min="0" name="original_price" id="originalPrice" class="form-control rounded-3" placeholder="34990" required>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Discounted Deal Price (₹) <span class="text-danger">*</span></label>
+            <input type="number" step="0.01" min="0" name="discounted_price" id="discountedPrice" class="form-control rounded-3" placeholder="26990" required>
+          </div>
+
+          <!-- Live Savings Calculation Preview Strip -->
+          <div class="col-12" id="savingsCalculationStrip" style="display: none;">
+            <div class="p-2 bg-success bg-opacity-10 border border-success border-opacity-25 rounded-3 d-flex align-items-center justify-content-between">
+              <span class="small fw-semibold text-success">
+                <i class="bi bi-calculator me-1"></i> Calculated Savings: <strong id="calculatedSavingsText">₹0.00</strong>
+              </span>
+              <span class="badge bg-success fw-bold" id="calculatedDiscountBadge">0% OFF</span>
+            </div>
+          </div>
+
+          <!-- Image Handling: URL or File Upload with Live Preview -->
+          <div class="col-12">
+            <div class="card border rounded-3 p-3 bg-white">
+              <label class="form-label fw-semibold mb-2">Product Image (Enter URL or Upload File) <span class="text-danger">*</span></label>
+              <div class="row g-3 align-items-center">
+                <div class="col-md-8">
+                  <input type="url" name="image_url" id="productImageUrl" class="form-control rounded-3 mb-2" placeholder="https://m.media-amazon.com/images/..." required>
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="small text-muted text-nowrap">Or upload file:</span>
+                    <input type="file" name="image_file" id="productImageFile" class="form-control form-control-sm rounded-3" accept="image/*">
+                  </div>
+                </div>
+                <div class="col-md-4 text-center">
+                  <div class="ds-import-preview-box d-flex flex-column align-items-center justify-content-center p-2 rounded-3" id="imagePreviewContainer" style="min-height: 100px;">
+                    <img id="imagePreview" src="" alt="Preview" class="rounded-2 d-none" style="max-height: 80px; max-width: 100%; object-fit: contain;">
+                    <span id="imagePreviewPlaceholder" class="small text-muted"><i class="bi bi-image fs-3 d-block"></i>No image loaded</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Merchant Product URL <span class="text-danger">*</span></label>
+            <input type="url" name="merchant_product_url" id="merchantProductUrl" class="form-control rounded-3" placeholder="https://www.amazon.in/dp/..." required>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Affiliate URL (Optional)</label>
+            <input type="url" name="affiliate_url" id="affiliateUrl" class="form-control rounded-3" placeholder="https://amzn.to/... (optional)">
+            <small class="text-muted">Defaults to Merchant Product URL if empty</small>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Deal Expiration Date (Optional)</label>
+            <input type="datetime-local" name="expiry_date" id="expiryDate" class="form-control rounded-3">
+          </div>
+
+          <div class="col-md-6 d-flex flex-wrap align-items-center gap-3 pt-md-4">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="is_featured" id="featCheck">
+              <label class="form-check-label fw-semibold small" for="featCheck">Featured Deal</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="is_trending" id="trendCheck">
+              <label class="form-check-label fw-semibold small" for="trendCheck">Trending</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="is_price_verified" id="verCheck" checked>
+              <label class="form-check-label fw-semibold small" for="verCheck">Verified Price</label>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <label class="form-label fw-semibold">Description</label>
+            <textarea name="description" id="productDescription" rows="3" class="form-control rounded-3" placeholder="Highlights, key specs, and discount terms..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pinned Sticky Modal Footer with Cancel and Publish Product Buttons -->
+      <div class="modal-footer border-top px-4 py-3 bg-light rounded-bottom-4 d-flex justify-content-between align-items-center">
+        <button type="button" class="btn btn-outline-secondary px-4 py-2 rounded-pill fw-semibold d-inline-flex align-items-center gap-1" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle me-1"></i> Cancel
+        </button>
+        <button type="submit" class="btn btn-primary-ds px-4 py-2 rounded-pill fw-bold shadow-sm d-inline-flex align-items-center gap-2" id="btnPublishProduct">
+          <i class="bi bi-cloud-arrow-up-fill"></i>
+          <span>Publish Product</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ==========================================================================
+     Modal: Edit Product Deal
+     ========================================================================== -->
+<div class="modal fade" id="editProductModal" tabindex="-1" aria-labelledby="editProductModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <form action="" method="POST" enctype="multipart/form-data" id="editProductForm" class="modal-content border-0 shadow-lg rounded-4">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="modal-header border-bottom px-4 py-3 bg-white">
+        <div class="d-flex align-items-center gap-2">
+          <div class="p-2 bg-warning bg-opacity-10 text-warning rounded-circle">
+            <i class="bi bi-pencil-square fs-5"></i>
+          </div>
+          <div>
+            <h5 class="modal-title fw-bold text-dark" id="editProductModalLabel">Edit Product Deal</h5>
+            <span class="text-muted small">Update product details, pricing, discount, and status</span>
+          </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body p-4 bg-white">
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label fw-semibold">Product Title <span class="text-danger">*</span></label>
+            <input type="text" name="title" id="editProductTitle" class="form-control rounded-3" required>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Category <span class="text-danger">*</span></label>
+            <select name="category_id" id="editProductCategory" class="form-select rounded-3" required>
+              <option value="">Select Category</option>
+              {% for cat in categories %}
+                <option value="{{ cat.id }}">{{ cat.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Merchant <span class="text-danger">*</span></label>
+            <select name="merchant_id" id="editProductMerchant" class="form-select rounded-3" required>
+              <option value="">Select Merchant</option>
+              {% for m in merchants %}
+                <option value="{{ m.id }}">{{ m.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Pricing Fields with Dynamic Savings Calculation -->
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Original Price (₹) <span class="text-danger">*</span></label>
+            <input type="number" step="0.01" min="0" name="original_price" id="editOriginalPrice" class="form-control rounded-3" required>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Discounted Deal Price (₹) <span class="text-danger">*</span></label>
+            <input type="number" step="0.01" min="0" name="discounted_price" id="editDiscountedPrice" class="form-control rounded-3" required>
+          </div>
+
+          <!-- Live Savings Calculation Preview Strip -->
+          <div class="col-12" id="editSavingsCalculationStrip" style="display: none;">
+            <div class="p-2 bg-success bg-opacity-10 border border-success border-opacity-25 rounded-3 d-flex align-items-center justify-content-between">
+              <span class="small fw-semibold text-success">
+                <i class="bi bi-calculator me-1"></i> Calculated Savings: <strong id="editCalculatedSavingsText">₹0.00</strong>
+              </span>
+              <span class="badge bg-success fw-bold" id="editCalculatedDiscountBadge">0% OFF</span>
+            </div>
+          </div>
+
+          <!-- Image Handling: URL or File Upload with Live Preview -->
+          <div class="col-12">
+            <div class="card border rounded-3 p-3 bg-white">
+              <label class="form-label fw-semibold mb-2">Product Image (Enter URL or Upload New File) <span class="text-danger">*</span></label>
+              <div class="row g-3 align-items-center">
+                <div class="col-md-8">
+                  <input type="url" name="image_url" id="editProductImageUrl" class="form-control rounded-3 mb-2" required>
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="small text-muted text-nowrap">Or upload replacement:</span>
+                    <input type="file" name="image_file" id="editProductImageFile" class="form-control form-control-sm rounded-3" accept="image/*">
+                  </div>
+                </div>
+                <div class="col-md-4 text-center">
+                  <div class="ds-import-preview-box d-flex flex-column align-items-center justify-content-center p-2 rounded-3" id="editImagePreviewContainer" style="min-height: 100px;">
+                    <img id="editImagePreview" src="" alt="Preview" class="rounded-2 d-none" style="max-height: 80px; max-width: 100%; object-fit: contain;">
+                    <span id="editImagePreviewPlaceholder" class="small text-muted"><i class="bi bi-image fs-3 d-block"></i>No image loaded</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Merchant Product URL <span class="text-danger">*</span></label>
+            <input type="url" name="merchant_product_url" id="editMerchantProductUrl" class="form-control rounded-3" required>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Affiliate URL (Optional)</label>
+            <input type="url" name="affiliate_url" id="editAffiliateUrl" class="form-control rounded-3">
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Deal Expiration Date (Optional)</label>
+            <input type="datetime-local" name="expiry_date" id="editExpiryDate" class="form-control rounded-3">
+          </div>
+
+          <div class="col-md-6 d-flex flex-wrap align-items-center gap-3 pt-md-4">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="is_published" id="editPubCheck" checked>
+              <label class="form-check-label fw-semibold small" for="editPubCheck">Published Live</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="is_featured" id="editFeatCheck">
+              <label class="form-check-label fw-semibold small" for="editFeatCheck">Featured Deal</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="is_trending" id="editTrendCheck">
+              <label class="form-check-label fw-semibold small" for="editTrendCheck">Trending</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="is_price_verified" id="editVerCheck">
+              <label class="form-check-label fw-semibold small" for="editVerCheck">Verified Price</label>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <label class="form-label fw-semibold">Description</label>
+            <textarea name="description" id="editProductDescription" rows="3" class="form-control rounded-3"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer border-top px-4 py-3 bg-light rounded-bottom-4 d-flex justify-content-between align-items-center">
+        <button type="button" class="btn btn-outline-secondary px-4 py-2 rounded-pill fw-semibold d-inline-flex align-items-center gap-1" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle me-1"></i> Cancel
+        </button>
+        <button type="submit" class="btn btn-primary-ds px-4 py-2 rounded-pill fw-bold shadow-sm d-inline-flex align-items-center gap-2" id="btnUpdateProduct">
+          <i class="bi bi-check-circle-fill"></i>
+          <span>Save Changes</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const importUrlInput = document.getElementById('importUrlInput');
+  const btnFetchDetails = document.getElementById('btnFetchDetails');
+  const btnFetchSpinner = document.getElementById('btnFetchSpinner');
+  const btnFetchIcon = document.getElementById('btnFetchIcon');
+  const importFeedback = document.getElementById('importFeedback');
+
+  const titleInput = document.getElementById('productTitle');
+  const categorySelect = document.getElementById('productCategory');
+  const merchantSelect = document.getElementById('productMerchant');
+  const originalPriceInput = document.getElementById('originalPrice');
+  const discountedPriceInput = document.getElementById('discountedPrice');
+  const imageUrlInput = document.getElementById('productImageUrl');
+  const imageFileInput = document.getElementById('productImageFile');
+  const merchantUrlInput = document.getElementById('merchantProductUrl');
+  const affiliateUrlInput = document.getElementById('affiliateUrl');
+  const descriptionInput = document.getElementById('productDescription');
+
+  const imagePreview = document.getElementById('imagePreview');
+  const imagePreviewPlaceholder = document.getElementById('imagePreviewPlaceholder');
+  const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+
+  const savingsCalculationStrip = document.getElementById('savingsCalculationStrip');
+  const calculatedSavingsText = document.getElementById('calculatedSavingsText');
+  const calculatedDiscountBadge = document.getElementById('calculatedDiscountBadge');
+
+  // Live image preview helper
+  function updateImagePreview(src) {
+    if (src && src.trim() !== '') {
+      imagePreview.src = src;
+      imagePreview.classList.remove('d-none');
+      imagePreviewPlaceholder.classList.add('d-none');
+      imagePreviewContainer.classList.add('has-preview');
+    } else {
+      imagePreview.src = '';
+      imagePreview.classList.add('d-none');
+      imagePreviewPlaceholder.classList.remove('d-none');
+      imagePreviewContainer.classList.remove('has-preview');
+    }
+  }
+
+  imageUrlInput.addEventListener('input', (e) => {
+    updateImagePreview(e.target.value);
+  });
+
+  // Local image file upload preview & AJAX upload
+  imageFileInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Local preview
+      const reader = new FileReader();
+      reader.onload = (re) => updateImagePreview(re.target.result);
+      reader.readAsDataURL(file);
+
+      // Upload in background to get permanent URL
+      const formData = new FormData();
+      formData.append('image', file);
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+      try {
+        const res = await fetch('/admin/api/products/upload-image', {
+          method: 'POST',
+          headers: csrfToken ? { 'X-CSRFToken': csrfToken } : {},
+          body: formData
+        });
+        const json = await res.json();
+        if (json.success && json.image_url) {
+          imageUrlInput.value = json.image_url;
+        }
+      } catch (err) {
+        console.warn('Background image upload deferred to form submission:', err);
+      }
+    }
+  });
+
+  // Dynamic savings & discount percentage calculator
+  function recalculateSavings() {
+    const orig = parseFloat(originalPriceInput.value);
+    const disc = parseFloat(discountedPriceInput.value);
+
+    if (!isNaN(orig) && !isNaN(disc) && orig > 0 && disc >= 0) {
+      const savings = Math.max(0, orig - disc);
+      const pct = Math.min(100, Math.max(0, Math.round(((orig - disc) / orig) * 100)));
+
+      calculatedSavingsText.textContent = '₹' + savings.toFixed(2);
+      calculatedDiscountBadge.textContent = pct + '% OFF';
+      savingsCalculationStrip.style.display = 'block';
+    } else {
+      savingsCalculationStrip.style.display = 'none';
+    }
+  }
+
+  originalPriceInput.addEventListener('input', recalculateSavings);
+  discountedPriceInput.addEventListener('input', recalculateSavings);
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // Automatic Product Import via URL
+  if (btnFetchDetails) {
+    btnFetchDetails.addEventListener('click', async () => {
+      const rawUrl = (importUrlInput.value || '').trim();
+      if (!rawUrl) {
+        importFeedback.className = 'alert alert-danger d-flex align-items-center gap-2 p-2 mt-3 mb-0 rounded-3 small';
+        importFeedback.innerHTML = '<i class="bi bi-exclamation-circle-fill fs-5 text-danger flex-shrink-0"></i><div>Please enter a valid product shopping URL.</div>';
+        importFeedback.style.display = 'flex';
+        return;
+      }
+
+      btnFetchSpinner.classList.remove('d-none');
+      btnFetchIcon.classList.add('d-none');
+      btnFetchDetails.disabled = true;
+      importFeedback.style.display = 'none';
+
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+      try {
+        const response = await fetch('/admin/api/products/import-url', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(csrfToken ? { 'X-CSRFToken': csrfToken } : {})
+          },
+          body: JSON.stringify({ url: rawUrl })
+        });
+
+        const result = await response.json();
+
+        if (result.success && result.data) {
+          const d = result.data;
+
+          if (d.title) titleInput.value = d.title;
+          if (d.category_id && categorySelect) categorySelect.value = d.category_id;
+          if (d.merchant_id && merchantSelect) merchantSelect.value = d.merchant_id;
+          if (d.image_url) {
+            imageUrlInput.value = d.image_url;
+            updateImagePreview(d.image_url);
+          } else {
+            imageUrlInput.value = '';
+            updateImagePreview('');
+          }
+          if (d.merchant_product_url) merchantUrlInput.value = d.merchant_product_url;
+          if (d.affiliate_url) {
+            affiliateUrlInput.value = d.affiliate_url;
+          } else {
+            affiliateUrlInput.value = '';
+          }
+          if (d.original_price) originalPriceInput.value = d.original_price;
+          if (d.discounted_price) discountedPriceInput.value = d.discounted_price;
+          if (d.description) descriptionInput.value = d.description;
+
+          recalculateSavings();
+
+          if (d.is_api_verified) {
+            importFeedback.className = 'alert alert-success d-flex align-items-center gap-2 p-2 mt-3 mb-0 rounded-3 small';
+            const fieldsText = d.retrieved_fields && d.retrieved_fields.length > 0 ? ' <div class="text-muted small mt-1">Populated: ' + d.retrieved_fields.join(', ') + '</div>' : '';
+            importFeedback.innerHTML = '<i class="bi bi-patch-check-fill fs-5 text-success flex-shrink-0"></i><div><strong>Import Verified:</strong> ' + escapeHtml(result.message) + fieldsText + '</div>';
+          } else {
+            importFeedback.className = 'alert alert-warning d-flex align-items-center gap-2 p-2 mt-3 mb-0 rounded-3 small';
+            importFeedback.innerHTML = '<i class="bi bi-info-circle-fill fs-5 text-warning flex-shrink-0"></i><div>' + escapeHtml(result.message) + '</div>';
+          }
+          importFeedback.style.display = 'flex';
+        } else {
+          importFeedback.className = 'alert alert-danger d-flex align-items-center gap-2 p-2 mt-3 mb-0 rounded-3 small';
+          importFeedback.innerHTML = '<i class="bi bi-exclamation-triangle-fill fs-5 text-danger flex-shrink-0"></i><div><strong>Import Error:</strong> ' + escapeHtml(result.error || 'Could not import product. Please enter details manually.') + '</div>';
+          importFeedback.style.display = 'flex';
+        }
+      } catch (err) {
+        importFeedback.className = 'alert alert-danger d-flex align-items-center gap-2 p-2 mt-3 mb-0 rounded-3 small';
+        importFeedback.innerHTML = '<i class="bi bi-exclamation-triangle-fill fs-5 text-danger flex-shrink-0"></i><div><strong>Connection Error:</strong> Network error while communicating with product import service. Please enter details manually.</div>';
+        importFeedback.style.display = 'flex';
+      } finally {
+        btnFetchSpinner.classList.add('d-none');
+        btnFetchIcon.classList.remove('d-none');
+        btnFetchDetails.disabled = false;
+      }
+    });
+  }
+
+  // Handle form submit validation
+  const addProductForm = document.getElementById('addProductForm');
+  if (addProductForm) {
+    addProductForm.addEventListener('submit', () => {
+      // If image file was chosen locally, relax the image_url HTML5 required check
+      if (imageFileInput && imageFileInput.files && imageFileInput.files.length > 0) {
+        imageUrlInput.removeAttribute('required');
+      }
+    });
+  }
+
+  // Handle Edit Product modal population and dynamic calculations
+  const editProductForm = document.getElementById('editProductForm');
+  const editTitleInput = document.getElementById('editProductTitle');
+  const editCategorySelect = document.getElementById('editProductCategory');
+  const editMerchantSelect = document.getElementById('editProductMerchant');
+  const editOriginalPriceInput = document.getElementById('editOriginalPrice');
+  const editDiscountedPriceInput = document.getElementById('editDiscountedPrice');
+  const editImageUrlInput = document.getElementById('editProductImageUrl');
+  const editImageFileInput = document.getElementById('editProductImageFile');
+  const editMerchantUrlInput = document.getElementById('editMerchantProductUrl');
+  const editAffiliateUrlInput = document.getElementById('editAffiliateUrl');
+  const editExpiryDateInput = document.getElementById('editExpiryDate');
+  const editDescriptionInput = document.getElementById('editProductDescription');
+  const editPubCheck = document.getElementById('editPubCheck');
+  const editFeatCheck = document.getElementById('editFeatCheck');
+  const editTrendCheck = document.getElementById('editTrendCheck');
+  const editVerCheck = document.getElementById('editVerCheck');
+
+  const editImagePreview = document.getElementById('editImagePreview');
+  const editImagePreviewPlaceholder = document.getElementById('editImagePreviewPlaceholder');
+  const editImagePreviewContainer = document.getElementById('editImagePreviewContainer');
+  const editSavingsCalculationStrip = document.getElementById('editSavingsCalculationStrip');
+  const editCalculatedSavingsText = document.getElementById('editCalculatedSavingsText');
+  const editCalculatedDiscountBadge = document.getElementById('editCalculatedDiscountBadge');
+
+  function updateEditImagePreview(src) {
+    if (!editImagePreview) return;
+    if (src && src.trim() !== '') {
+      editImagePreview.src = src;
+      editImagePreview.classList.remove('d-none');
+      if (editImagePreviewPlaceholder) editImagePreviewPlaceholder.classList.add('d-none');
+      if (editImagePreviewContainer) editImagePreviewContainer.classList.add('has-preview');
+    } else {
+      editImagePreview.src = '';
+      editImagePreview.classList.add('d-none');
+      if (editImagePreviewPlaceholder) editImagePreviewPlaceholder.classList.remove('d-none');
+      if (editImagePreviewContainer) editImagePreviewContainer.classList.remove('has-preview');
+    }
+  }
+
+  function recalculateEditSavings() {
+    if (!editOriginalPriceInput || !editDiscountedPriceInput || !editSavingsCalculationStrip) return;
+    const orig = parseFloat(editOriginalPriceInput.value);
+    const disc = parseFloat(editDiscountedPriceInput.value);
+
+    if (!isNaN(orig) && !isNaN(disc) && orig > 0 && disc >= 0) {
+      const savings = Math.max(0, orig - disc);
+      const pct = Math.min(100, Math.max(0, Math.round(((orig - disc) / orig) * 100)));
+
+      if (editCalculatedSavingsText) editCalculatedSavingsText.textContent = '₹' + savings.toFixed(2);
+      if (editCalculatedDiscountBadge) editCalculatedDiscountBadge.textContent = pct + '% OFF';
+      editSavingsCalculationStrip.style.display = 'block';
+    } else {
+      editSavingsCalculationStrip.style.display = 'none';
+    }
+  }
+
+  if (editOriginalPriceInput && editDiscountedPriceInput) {
+    editOriginalPriceInput.addEventListener('input', recalculateEditSavings);
+    editDiscountedPriceInput.addEventListener('input', recalculateEditSavings);
+  }
+
+  if (editImageUrlInput) {
+    editImageUrlInput.addEventListener('input', (e) => updateEditImagePreview(e.target.value));
+  }
+
+  if (editImageFileInput) {
+    editImageFileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (re) => updateEditImagePreview(re.target.result);
+        reader.readAsDataURL(file);
+        if (editImageUrlInput) editImageUrlInput.removeAttribute('required');
+      }
+    });
+  }
+
+  document.querySelectorAll('.btn-edit-product').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const pid = btn.getAttribute('data-id');
+      if (editProductForm) {
+        editProductForm.action = `/admin/products/${pid}/edit`;
+      }
+      if (editTitleInput) editTitleInput.value = btn.getAttribute('data-title') || '';
+      if (editCategorySelect) editCategorySelect.value = btn.getAttribute('data-category-id') || '';
+      if (editMerchantSelect) editMerchantSelect.value = btn.getAttribute('data-merchant-id') || '';
+      if (editOriginalPriceInput) editOriginalPriceInput.value = btn.getAttribute('data-original-price') || '';
+      if (editDiscountedPriceInput) editDiscountedPriceInput.value = btn.getAttribute('data-discounted-price') || '';
+      if (editImageUrlInput) editImageUrlInput.value = btn.getAttribute('data-image-url') || '';
+      if (editMerchantUrlInput) editMerchantUrlInput.value = btn.getAttribute('data-merchant-product-url') || '';
+      if (editAffiliateUrlInput) editAffiliateUrlInput.value = btn.getAttribute('data-affiliate-url') || '';
+      if (editExpiryDateInput) editExpiryDateInput.value = btn.getAttribute('data-expiry-date') || '';
+      if (editDescriptionInput) editDescriptionInput.value = btn.getAttribute('data-description') || '';
+
+      if (editPubCheck) editPubCheck.checked = btn.getAttribute('data-is-published') === '1';
+      if (editFeatCheck) editFeatCheck.checked = btn.getAttribute('data-is-featured') === '1';
+      if (editTrendCheck) editTrendCheck.checked = btn.getAttribute('data-is-trending') === '1';
+      if (editVerCheck) editVerCheck.checked = btn.getAttribute('data-is-price-verified') === '1';
+
+      updateEditImagePreview(btn.getAttribute('data-image-url') || '');
+      recalculateEditSavings();
+    });
+  });
+
+  if (editProductForm) {
+    editProductForm.addEventListener('submit', () => {
+      if (editImageFileInput && editImageFileInput.files && editImageFileInput.files.length > 0) {
+        editImageUrlInput.removeAttribute('required');
+      }
+    });
+  }
+});
+</script>
+{% endblock %}

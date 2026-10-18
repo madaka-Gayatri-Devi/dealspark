@@ -1,0 +1,88 @@
+<footer class="ds-footer">
+  <div class="container">
+    <div class="row g-4 g-lg-5">
+      <!-- Col 1: About DealSpark & Mission -->
+      <div class="col-lg-4 col-md-6">
+        <div class="d-flex align-items-center mb-3">
+          <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="DealSpark" style="height: 38px; filter: brightness(0) invert(1);">
+        </div>
+        <p class="ds-footer-text mb-4">
+          DealSpark is India's premier deals discovery portal. We track price changes and surface verified discounts across major online retailers so you never pay full price.
+        </p>
+        <div class="d-flex gap-2">
+          <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" class="ds-footer-social-link" aria-label="Follow DealSpark on Twitter / X">
+            <i class="bi bi-twitter-x"></i>
+          </a>
+          <a href="https://telegram.org" target="_blank" rel="noopener noreferrer" class="ds-footer-social-link" aria-label="Join DealSpark on Telegram for Instant Deal Alerts">
+            <i class="bi bi-telegram"></i>
+          </a>
+          <a href="https://whatsapp.com" target="_blank" rel="noopener noreferrer" class="ds-footer-social-link" aria-label="Join DealSpark WhatsApp Channel">
+            <i class="bi bi-whatsapp"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Col 2: Popular Categories -->
+      <div class="col-lg-3 col-md-6">
+        <h5 class="ds-footer-heading">Popular Categories</h5>
+        <ul class="list-unstyled mb-0">
+          {% for cat in nav_categories[:6] %}
+            <li class="mb-2">
+              <a href="{{ url_for('main.search') }}?category={{ cat.slug }}" class="ds-footer-link d-inline-flex align-items-center gap-2">
+                <i class="bi {{ cat.icon }} text-warning"></i>
+                <span>{{ cat.name }}</span>
+              </a>
+            </li>
+          {% else %}
+            <li class="mb-2"><a href="{{ url_for('main.search') }}?category=electronics" class="ds-footer-link">Electronics</a></li>
+            <li class="mb-2"><a href="{{ url_for('main.search') }}?category=mobiles" class="ds-footer-link">Mobiles & Accessories</a></li>
+            <li class="mb-2"><a href="{{ url_for('main.search') }}?category=fashion" class="ds-footer-link">Fashion & Clothing</a></li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <!-- Col 3: Quick Links & Transparency -->
+      <div class="col-lg-2 col-md-6">
+        <h5 class="ds-footer-heading">Transparency</h5>
+        <ul class="list-unstyled mb-0">
+          <li class="mb-2"><a href="{{ url_for('main.about') }}" class="ds-footer-link">About Us</a></li>
+          <li class="mb-2"><a href="{{ url_for('main.disclaimer') }}" class="ds-footer-link">Affiliate Disclosure</a></li>
+          <li class="mb-2"><a href="{{ url_for('main.disclaimer') }}" class="ds-footer-link">Price Policy</a></li>
+          <li class="mb-2"><a href="{{ url_for('main.disclaimer') }}" class="ds-footer-link">Terms & Privacy</a></li>
+          <li class="mb-2"><a href="{{ url_for('auth.login') }}" class="ds-footer-link text-white-50"><i class="bi bi-shield-lock me-1"></i>Admin Portal</a></li>
+        </ul>
+      </div>
+
+      <!-- Col 4: Affiliate & Legal Disclaimer Panel -->
+      <div class="col-lg-3 col-md-6">
+        <h5 class="ds-footer-heading">Affiliate Disclosure</h5>
+        <div class="ds-footer-disclosure-panel">
+          <div class="d-flex align-items-center gap-2 mb-2 text-warning fw-bold">
+            <i class="bi bi-shield-check fs-5"></i>
+            <span>Verified Links</span>
+          </div>
+          <p class="mb-2">
+            DealSpark partners with Amazon, Flipkart, Myntra, and top retailers.
+          </p>
+          <p class="mb-0">
+            Purchases through our verified links may earn us an affiliate commission at <strong>no extra cost to you</strong>.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom copyright -->
+    <div class="ds-footer-bottom d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+      <div>
+        &copy; {{ current_year }} <strong class="text-white">DealSpark</strong>. All rights reserved.
+        <span class="mx-2 text-white-50">•</span>
+        <a href="{{ url_for('auth.login') }}" class="text-white-50 text-decoration-none small hover-underline" title="Administrator Login">
+          <i class="bi bi-shield-lock me-1"></i>Admin Access
+        </a>
+      </div>
+      <div class="ds-footer-bottom-text text-md-end">
+        Prices, coupons, and product availability are verified frequently and are subject to change by merchants.
+      </div>
+    </div>
+  </div>
+</footer>

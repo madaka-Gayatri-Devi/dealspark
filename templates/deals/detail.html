@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.title }} — Best Deal & Price Comparison — DealSpark{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Breadcrumb Navigation -->
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb small">
+      <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}" class="text-decoration-none">Home</a></li>
+      <li class="breadcrumb-item"><a href="{{ url_for('main.deals_list') }}" class="text-decoration-none">Deals</a></li>
+      {% if product.category %}
+        <li class="breadcrumb-item">
+          <a href="{{ url_for('main.category_deals', slug=product.category.slug) }}" class="text-decoration-none">
+            {{ product.category.name }}
+          </a>
+        </li>
+      {% endif %}
+      <li class="breadcrumb-item active text-truncate" style="max-width: 250px;" aria-current="page">{{ product.title }}</li>
+    </ol>
+  </nav>
+
+  <!-- Deal Status Warning Banner for Expired / Unavailable Deals -->
+  {% if product.is_deal_expired %}
+    <div class="alert alert-warning border-0 shadow-sm d-flex align-items-center gap-3 mb-4 rounded-3 p-3">
+      <i class="bi bi-exclamation-triangle-fill fs-3 text-warning"></i>
+      <div>
+        <h6 class="fw-bold mb-0">This deal has expired</h6>
+        <p class="small mb-0 text-muted">The promotional discount has concluded. Prices and availability on the merchant store may vary.</p>
+      </div>
+    </div>
+  {% elif not product.is_available or not product.is_published %}
+    <div class="alert alert-secondary border-0 shadow-sm d-flex align-items-center gap-3 mb-4 rounded-3 p-3">
+      <i class="bi bi-info-circle-fill fs-3 text-secondary"></i>
+      <div>
+        <h6 class="fw-bold mb-0">Deal Currently Inactive or Out of Stock</h6>
+        <p class="small mb-0 text-muted">This product offer is currently unlisted or out of stock at the partner merchant.</p>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Main Product Detail Card -->
+  <div class="ds-detail-card p-4 p-md-5 mb-5 ds-reveal">
+    <div class="row g-5 align-items-start">
+      <!-- Left Column: Product Image -->
+      <div class="col-lg-5">
+        <div class="ds-detail-img-box position-relative">
+          <!-- Discount Overlay Badge -->
+          {% if product.discount_percentage and product.discount_percentage > 0 %}
+            <span class="badge-discount position-absolute top-0 start-0 m-3 fs-6 px-3 py-2">
+              {{ product.formatted_discount_percentage }}% OFF
+            </span>
+          {% endif %}
+
+          {% if product.is_featured %}
+            <span class="badge bg-danger position-absolute top-0 end-0 m-3 px-3 py-2 rounded-pill shadow-sm">
+              <i class="bi bi-lightning-charge-fill text-warning me-1"></i> Featured Deal
+            </span>
+          {% endif %}
+
+          <img src="{{ product.image_url }}" alt="{{ product.title }}" class="ds-detail-img img-fluid rounded-3" onerror="this.onerror=null; this.src='https://placehold.co/400x350/f8fafc/64748b?text=DealSpark';">
+        </div>
+
+        <!-- Price Math Transparency Box -->
+        <div class="ds-transparency-card mt-4">
+          <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+            <span class="small fw-bold text-dark text-uppercase tracking-wide d-inline-flex align-items-center gap-2">
+              <i class="bi bi-calculator-fill text-primary-custom"></i> Price Transparency
+            </span>
+            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1 rounded-pill small">
+              Direct Retail Comparison
+            </span>
+          </div>
+          <div class="d-flex justify-content-between small text-muted mb-2">
+            <span>Original Retail Price:</span>
+            <span class="text-decoration-line-through text-dark">{{ product.formatted_original_price }}</span>
+          </div>
+          <div class="d-flex justify-content-between small text-muted mb-2">
+            <span>Special Deal Price:</span>
+            <span class="fw-bold text-dark fs-6">{{ product.formatted_discounted_price }}</span>
+          </div>
+          <div class="d-flex justify-content-between small fw-bold text-success pt-2 border-top">
+            <span>Total You Save:</span>
+            <span class="fs-6">{{ product.formatted_savings }} ({{ product.formatted_discount_percentage }}% OFF)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Product Meta & Purchase CTAs -->
+      <div class="col-lg-7">
+        <!-- Store and Category Badges -->
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+          {% if product.merchant %}
+            <div class="d-inline-flex align-items-center gap-2 px-3 py-1 bg-white border rounded-pill small fw-bold text-dark shadow-sm">
+              <span class="merchant-pill-dot" style="background-color: {{ product.merchant.badge_color }};"></span>
+              <span>Available at {{ product.merchant.name }}</span>
+            </div>
+          {% endif %}
+
+          {% if product.category %}
+            <a href="{{ url_for('main.category_deals', slug=product.category.slug) }}" class="badge bg-light text-muted border text-decoration-none px-3 py-2 rounded-pill hover-primary">
+              <i class="bi bi-folder2-open me-1"></i> {{ product.category.name }}
+            </a>
+          {% endif %}
+
+          <!-- Price Verification Badge -->
+          {% if product.is_price_verified %}
+            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill small d-inline-flex align-items-center gap-1">
+              <span class="ds-verified-pulse"></span>
+              <i class="bi bi-patch-check-fill me-1"></i> Verified Price Drop
+            </span>
+          {% else %}
+            <span class="badge bg-light text-muted border px-3 py-2 rounded-pill small" title="Manually posted deal">
+              <i class="bi bi-clock me-1"></i> Listed Deal
+            </span>
+          {% endif %}
+        </div>
+
+        <h1 class="h2 fw-bold text-dark mb-3 lh-sm">{{ product.title }}</h1>
+
+        <!-- Big Pricing Block -->
+        <div class="ds-price-box mb-4 d-flex flex-wrap align-items-baseline gap-3">
+          <span class="display-5 fw-bold text-dark">{{ product.formatted_discounted_price }}</span>
+          {% if product.original_price and product.original_price > product.discounted_price %}
+            <span class="fs-4 text-muted text-decoration-line-through">{{ product.formatted_original_price }}</span>
+          {% endif %}
+          {% if product.savings_amount and product.savings_amount > 0 %}
+            <span class="badge bg-success fs-6 px-3 py-2 rounded-pill ms-auto shadow-sm">
+              <i class="bi bi-check-circle-fill me-1"></i> Save {{ product.formatted_savings }}
+            </span>
+          {% endif %}
+        </div>
+
+        <!-- Deal Expiry / Last Verified Info -->
+        <div class="d-flex flex-wrap gap-4 small text-muted mb-4 pb-3 border-bottom">
+          {% if product.expiry_date %}
+            <div class="d-flex align-items-center gap-2 text-danger fw-medium">
+              <i class="bi bi-hourglass-split"></i>
+              <span>Expires: {{ product.expiry_date.strftime('%d %b %Y, %I:%M %p UTC') }}</span>
+            </div>
+          {% endif %}
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-shield-check text-success"></i>
+            <span>Verified: {{ product.last_price_verification.strftime('%d %b %Y') if product.last_price_verification else 'Today' }}</span>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-fire text-primary-custom"></i>
+            <span>{{ product.click_count or 0 }} Shoppers Checked Deal</span>
+          </div>
+        </div>
+
+        <!-- Main Purchase Action Buttons -->
+        <div class="d-flex flex-column flex-sm-row align-items-stretch gap-3 mb-4">
+          <a href="{{ url_for('affiliate.redirect_deal', product_id=product.id) }}"
+             target="_blank"
+             rel="noopener noreferrer nofollow"
+             class="btn btn-primary-ds btn-lg flex-grow-1 d-flex align-items-center justify-content-center gap-2 shadow-sm">
+            <span>Buy Now at {{ product.merchant.name if product.merchant else 'Store' }}</span>
+            <i class="bi bi-box-arrow-up-right"></i>
+          </a>
+
+          <!-- Save to Favorites Button -->
+          <button type="button"
+                  class="btn btn-outline-secondary btn-lg d-flex align-items-center justify-content-center gap-2"
+                  data-deal-id="{{ product.id }}"
+                  onclick="toggleDealFavorite({{ product.id }}, this)"
+                  id="detailFavBtn">
+            <i class="bi {% if is_favorited %}bi-heart-fill text-danger{% else %}bi-heart{% endif %} fs-5"></i>
+            <span class="fav-label">{% if is_favorited %}Saved in Wishlist{% else %}Save Deal{% endif %}</span>
+          </button>
+        </div>
+
+        <!-- Social Share Block -->
+        <div class="d-flex align-items-center gap-2 mb-4 flex-wrap">
+          <span class="small fw-bold text-muted me-2"><i class="bi bi-share-fill text-primary-custom me-1"></i> Share Deal:</span>
+          <button type="button" class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1 rounded-pill" onclick="shareDeal('{{ product.title|escape }}', '{{ request.url }}')">
+            <i class="bi bi-share"></i> Share
+          </button>
+          <button type="button" class="btn btn-outline-success btn-sm d-inline-flex align-items-center gap-1 rounded-pill" onclick="shareOnWhatsApp('{{ product.title|escape }}', '{{ request.url }}', '{{ product.formatted_discounted_price }}')">
+            <i class="bi bi-whatsapp"></i> WhatsApp
+          </button>
+          <button type="button" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1 rounded-pill" onclick="copyDealLink('{{ request.url }}', '{{ product.title|escape }}')">
+            <i class="bi bi-link-45deg"></i> Copy Link
+          </button>
+        </div>
+
+        <!-- Product Description -->
+        {% if product.description %}
+          <div class="mt-4 pt-3 border-top">
+            <h5 class="fw-bold mb-2 text-dark"><i class="bi bi-info-circle text-primary-custom me-2"></i> Deal Description & Features</h5>
+            <div class="text-secondary small lh-lg" style="white-space: pre-line;">
+              {{ product.description }}
+            </div>
+          </div>
+        {% endif %}
+
+        <!-- Affiliate Disclaimer Notice -->
+        <div class="mt-4 p-3 rounded-3 bg-light border small text-muted">
+          <i class="bi bi-shield-lock-fill me-1 text-primary-custom"></i>
+          <strong>Affiliate Transparency:</strong> When you click "Buy Now" and purchase this product on {{ product.merchant.name if product.merchant else 'the retailer site' }}, DealSpark may earn a small affiliate commission at zero additional cost to you. We only recommend genuine discounts.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Related Deals Section -->
+  {% if related_deals %}
+    <section class="ds-reveal mb-5 pt-3" id="related-deals-section">
+      <div class="ds-related-header d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3">
+        <div>
+          <span class="ds-related-badge mb-2"><i class="bi bi-stars"></i> Curated Matches</span>
+          <h2 class="h3 fw-bold mb-1 text-dark">{{ related_heading or ('More Deals in ' ~ product.category.name if product.category else 'Similar Deals You May Love') }}</h2>
+          <p class="text-muted small mb-0">Handpicked alternatives and price drops matching this style, category, and price range</p>
+        </div>
+        {% if product.category %}
+          <a href="{{ url_for('main.category_deals', slug=product.category.slug) }}" class="btn btn-outline-ds btn-sm d-inline-flex align-items-center gap-2">
+            <span>Explore All {{ product.category.name }} Deals</span>
+            <i class="bi bi-arrow-right"></i>
+          </a>
+        {% endif %}
+      </div>
+
+      <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+        {% for deal in related_deals %}
+          <div class="col">
+            {% include 'includes/deal_card.html' %}
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+  {% endif %}
+</div>
+{% endblock %}
+
+{# Suppress public footer on individual product detail pages per Phase 5 specifications #}
+{% block footer %}{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    if (typeof trackRecentlyViewed === 'function') {
+      trackRecentlyViewed({
+        id: {{ product.id }},
+        slug: {{ product.slug|tojson }},
+        title: {{ product.title|tojson }},
+        image_url: {{ product.image_url|tojson }},
+        discounted_price: {{ product.formatted_discounted_price|tojson }},
+        original_price: {{ product.formatted_original_price|tojson }},
+        discount_percentage: {{ (product.discount_percentage or 0)|float }},
+        savings: {{ product.formatted_savings|tojson }},
+        merchant_name: {{ (product.merchant.name if product.merchant else '')|tojson }},
+        category_name: {{ (product.category.name if product.category else '')|tojson }}
+      });
+    }
+  });
+</script>
+{% endblock %}

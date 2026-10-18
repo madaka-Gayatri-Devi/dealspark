@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}About Us — DealSpark{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="bg-white p-4 p-md-5 rounded-4 shadow-sm border">
+        <h1 class="h2 fw-bold mb-3">About DealSpark</h1>
+        <p class="lead text-secondary mb-4">
+          DealSpark is an independent deals and price discovery platform designed to help smart shoppers discover authentic bargains and real price drops.
+        </p>
+
+        <h3 class="h4 fw-bold mt-4 mb-2">Our Mission</h3>
+        <p class="text-secondary">
+          In an era of confusing sales promotions and inflated markups, DealSpark aims to bring complete transparency to online shopping. We rigorously compute discount percentages based strictly on real original prices, never fabricate promotional tags, and connect shoppers directly to official retailer websites.
+        </p>
+
+        <h3 class="h4 fw-bold mt-4 mb-2">How It Works</h3>
+        <ul class="text-secondary">
+          <li><strong>Direct Merchant Links:</strong> When you find a deal, clicking "Buy Now" directs you straight to the merchant's checkout portal (such as Amazon India, Flipkart, Myntra, etc.).</li>
+          <li><strong>Zero Markups:</strong> We do not handle payments, inventory, or order fulfillment. You deal directly with trusted merchants.</li>
+          <li><strong>Accurate Savings Math:</strong> Savings amount and discount percentages are calculated with exact arithmetic formulas to prevent misrepresentation.</li>
+        </ul>
+
+        <div class="mt-4 pt-3 border-top">
+          <a href="{{ url_for('main.index') }}" class="btn btn-outline-ds">
+            <i class="bi bi-arrow-left me-1"></i> Back to Deals
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

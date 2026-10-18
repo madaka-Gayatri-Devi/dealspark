@@ -1,0 +1,374 @@
+{% extends "base.html" %}
+
+{% block title %}
+  {% if selected_category %}
+    {{ selected_category.name }} Deals & Offers — DealSpark
+  {% else %}
+    All Online Shopping Deals & Price Drops — DealSpark
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Breadcrumb Navigation -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb small">
+      <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}" class="text-decoration-none">Home</a></li>
+      {% if selected_category %}
+        <li class="breadcrumb-item"><a href="{{ url_for('main.deals_list') }}" class="text-decoration-none">All Deals</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ selected_category.name }}</li>
+      {% else %}
+        <li class="breadcrumb-item active" aria-current="page">All Deals</li>
+      {% endif %}
+    </ol>
+  </nav>
+
+  <!-- Page Header Banner -->
+  <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-4 p-4 rounded-4 bg-white border shadow-sm">
+    <div>
+      <div class="d-flex align-items-center gap-2 mb-1">
+        {% if selected_category %}
+          <span class="badge bg-primary-custom px-2 py-1"><i class="bi {{ selected_category.icon }} me-1"></i>Category</span>
+        {% else %}
+          <span class="badge bg-secondary px-2 py-1">Catalog</span>
+        {% endif %}
+        <span class="text-muted small">Showing {{ pagination.total }} active verified deals</span>
+      </div>
+      <h1 class="h3 fw-bold mb-1">
+        {% if selected_category %}
+          {{ selected_category.name }} Deals
+        {% else %}
+          Explore Online Deals & Price Drops
+        {% endif %}
+      </h1>
+      <p class="text-muted small mb-0">
+        {% if selected_category and selected_category.description %}
+          {{ selected_category.description }}
+        {% else %}
+          Discover verified discounts across Amazon, Flipkart, Myntra, Ajio, and top Indian online stores.
+        {% endif %}
+      </p>
+    </div>
+
+    <!-- Mobile Filter Toggle & Sort Dropdown -->
+    <div class="d-flex align-items-center gap-2 w-100 w-md-auto justify-content-between justify-content-md-end">
+      <!-- Offcanvas Trigger for Mobile -->
+      <button class="btn btn-outline-ds btn-sm d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#filterDrawer" aria-controls="filterDrawer">
+        <i class="bi bi-funnel me-1"></i> Filters
+        {% if selected_category or selected_merchant or min_price or max_price or min_discount %}
+          <span class="badge bg-danger rounded-pill ms-1">Active</span>
+        {% endif %}
+      </button>
+
+      <!-- Sort Dropdown Form -->
+      <div class="d-flex align-items-center gap-2">
+        <label for="sortSelect" class="text-muted small text-nowrap d-none d-sm-inline">Sort by:</label>
+        <select id="sortSelect" class="form-select form-select-sm" style="min-width: 170px;" onchange="location = this.value;">
+          <option value="?{{ merge_query_args(sort='newest', page=1) }}" {% if sort_by == 'newest' %}selected{% endif %}>Newest Deals</option>
+          <option value="?{{ merge_query_args(sort='price_asc', page=1) }}" {% if sort_by == 'price_asc' %}selected{% endif %}>Lowest Price</option>
+          <option value="?{{ merge_query_args(sort='price_desc', page=1) }}" {% if sort_by == 'price_desc' %}selected{% endif %}>Highest Price</option>
+          <option value="?{{ merge_query_args(sort='discount_desc', page=1) }}" {% if sort_by == 'discount_desc' %}selected{% endif %}>Highest Discount</option>
+          <option value="?{{ merge_query_args(sort='popular', page=1) }}" {% if sort_by == 'popular' %}selected{% endif %}>Most Popular</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category Pills Strip -->
+  <div class="mb-4">
+    <div class="ds-cat-scroll py-1">
+      <a href="{{ url_for('main.deals_list') }}" class="ds-cat-pill {% if not selected_category %}active{% endif %}">
+        <i class="bi bi-grid-fill"></i> All Categories
+      </a>
+      {% for cat in categories %}
+        {% set p_count = category_counts.get(cat.id, 0) %}
+        <a href="{{ url_for('main.category_deals', slug=cat.slug) }}" class="ds-cat-pill {% if selected_category and selected_category.slug == cat.slug %}active{% endif %}">
+          <i class="bi {{ cat.icon }}"></i>
+          <span>{{ cat.name }}</span>
+          {% if p_count > 0 %}
+            <span class="badge bg-light text-dark rounded-pill ms-1">{{ p_count }}</span>
+          {% endif %}
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Desktop Sidebar Filters (Col 3 on Large) -->
+    <div class="col-lg-3 d-none d-lg-block">
+      <div class="card border-0 shadow-sm p-4 bg-white rounded-4 sticky-top" style="top: 85px; z-index: 10;">
+        <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+          <h5 class="fw-bold mb-0"><i class="bi bi-sliders text-primary-custom me-2"></i>Filter Deals</h5>
+          {% if selected_category or selected_merchant or min_price or max_price or min_discount or query_str %}
+            <a href="{{ url_for('main.deals_list') }}" class="text-danger small fw-semibold text-decoration-none">
+              <i class="bi bi-x-circle me-1"></i>Clear All
+            </a>
+          {% endif %}
+        </div>
+
+        <form action="{{ url_for('main.deals_list') if not selected_category else url_for('main.category_deals', slug=selected_category.slug) }}" method="GET">
+          {% if query_str %}
+            <input type="hidden" name="q" value="{{ query_str }}">
+          {% endif %}
+          <input type="hidden" name="sort" value="{{ sort_by }}">
+
+          <!-- Category Selection -->
+          {% if not selected_category %}
+            <div class="mb-3">
+              <label class="form-label fw-bold small text-uppercase text-muted">Category</label>
+              <select name="category" class="form-select form-select-sm">
+                <option value="">All Categories</option>
+                {% for cat in categories %}
+                  <option value="{{ cat.slug }}" {% if selected_category and selected_category.slug == cat.slug %}selected{% endif %}>
+                    {{ cat.name }} ({{ category_counts.get(cat.id, 0) }})
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+          {% endif %}
+
+          <!-- Merchant Filter -->
+          <div class="mb-3">
+            <label class="form-label fw-bold small text-uppercase text-muted">Merchant Store</label>
+            <select name="merchant" class="form-select form-select-sm">
+              <option value="">All Partner Stores</option>
+              {% for m in merchants %}
+                <option value="{{ m.slug }}" {% if selected_merchant and selected_merchant.slug == m.slug %}selected{% endif %}>
+                  {{ m.name }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Price Range Filter -->
+          <div class="mb-3">
+            <label class="form-label fw-bold small text-uppercase text-muted">Price Range (₹)</label>
+            <div class="row g-2">
+              <div class="col-6">
+                <input type="number" min="0" step="10" name="min_price" class="form-control form-control-sm" placeholder="Min ₹" value="{{ min_price }}">
+              </div>
+              <div class="col-6">
+                <input type="number" min="0" step="10" name="max_price" class="form-control form-control-sm" placeholder="Max ₹" value="{{ max_price }}">
+              </div>
+            </div>
+          </div>
+
+          <!-- Minimum Discount -->
+          <div class="mb-4">
+            <label class="form-label fw-bold small text-uppercase text-muted">Minimum Discount</label>
+            <select name="min_discount" class="form-select form-select-sm">
+              <option value="">Any Discount</option>
+              <option value="10" {% if min_discount == '10' %}selected{% endif %}>10% or more</option>
+              <option value="20" {% if min_discount == '20' %}selected{% endif %}>20% or more</option>
+              <option value="30" {% if min_discount == '30' %}selected{% endif %}>30% or more</option>
+              <option value="40" {% if min_discount == '40' %}selected{% endif %}>40% or more</option>
+              <option value="50" {% if min_discount == '50' %}selected{% endif %}>50% or more</option>
+              <option value="70" {% if min_discount == '70' %}selected{% endif %}>70% or more</option>
+            </select>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary-ds btn-sm">
+              <i class="bi bi-filter me-1"></i> Apply Filters
+            </button>
+            <a href="{{ url_for('main.deals_list') if not selected_category else url_for('main.category_deals', slug=selected_category.slug) }}" class="btn btn-outline-secondary btn-sm">
+              Reset
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Deals Grid Content (Col 9 on Large, Col 12 on Mobile) -->
+    <div class="col-lg-9">
+      <!-- Active Filter Chips -->
+      {% if selected_category or selected_merchant or min_price or max_price or min_discount or query_str %}
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-3 p-3 bg-white border rounded-3">
+          <span class="small fw-bold text-muted">Active Filters:</span>
+          {% if query_str %}
+            <span class="badge bg-light text-dark border px-2 py-1">
+              Search: "{{ query_str }}"
+              <a href="?{{ merge_query_args(q=None, page=1) }}" class="text-danger ms-1 text-decoration-none">×</a>
+            </span>
+          {% endif %}
+          {% if selected_category and not is_category_view %}
+            <span class="badge bg-light text-dark border px-2 py-1">
+              Category: {{ selected_category.name }}
+              <a href="?{{ merge_query_args(category=None, page=1) }}" class="text-danger ms-1 text-decoration-none">×</a>
+            </span>
+          {% endif %}
+          {% if selected_merchant %}
+            <span class="badge bg-light text-dark border px-2 py-1">
+              Merchant: {{ selected_merchant.name }}
+              <a href="?{{ merge_query_args(merchant=None, page=1) }}" class="text-danger ms-1 text-decoration-none">×</a>
+            </span>
+          {% endif %}
+          {% if min_price %}
+            <span class="badge bg-light text-dark border px-2 py-1">
+              Min ₹{{ min_price }}
+              <a href="?{{ merge_query_args(min_price=None, page=1) }}" class="text-danger ms-1 text-decoration-none">×</a>
+            </span>
+          {% endif %}
+          {% if max_price %}
+            <span class="badge bg-light text-dark border px-2 py-1">
+              Max ₹{{ max_price }}
+              <a href="?{{ merge_query_args(max_price=None, page=1) }}" class="text-danger ms-1 text-decoration-none">×</a>
+            </span>
+          {% endif %}
+          {% if min_discount %}
+            <span class="badge bg-light text-dark border px-2 py-1">
+              {{ min_discount }}%+ OFF
+              <a href="?{{ merge_query_args(min_discount=None, page=1) }}" class="text-danger ms-1 text-decoration-none">×</a>
+            </span>
+          {% endif %}
+          <a href="{{ url_for('main.deals_list') if not selected_category else url_for('main.category_deals', slug=selected_category.slug) }}" class="btn btn-link btn-sm text-danger p-0 ms-auto text-decoration-none">
+            Clear all
+          </a>
+        </div>
+      {% endif %}
+
+      <!-- Products Grid: 6 cols on XXL, 4 on desktop, 2 on tablet, 1-2 on mobile -->
+      {% if deals %}
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-2 row-cols-lg-3 row-cols-xl-3 row-cols-xxl-4 g-3 g-xl-4">
+          {% for deal in deals %}
+            <div class="col">
+              {% include 'includes/deal_card.html' %}
+            </div>
+          {% endfor %}
+        </div>
+
+        <!-- Server-side Pagination Controls -->
+        {% if pagination.pages > 1 %}
+          <nav aria-label="Deals pagination" class="mt-5">
+            <ul class="pagination justify-content-center flex-wrap gap-1">
+              <!-- Previous Button -->
+              <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                <a class="page-link rounded-2" href="?{{ merge_query_args(page=pagination.prev_num) if pagination.has_prev else '#' }}" tabindex="{% if not pagination.has_prev %}-1{% endif %}">
+                  <i class="bi bi-chevron-left"></i> Previous
+                </a>
+              </li>
+
+              <!-- Page Numbers -->
+              {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                {% if p %}
+                  <li class="page-item {% if p == pagination.page %}active{% endif %}">
+                    <a class="page-link rounded-2 {% if p == pagination.page %}bg-primary-custom border-0 text-white{% endif %}" href="?{{ merge_query_args(page=p) }}">
+                      {{ p }}
+                    </a>
+                  </li>
+                {% else %}
+                  <li class="page-item disabled"><span class="page-link rounded-2 border-0">…</span></li>
+                {% endif %}
+              {% endfor %}
+
+              <!-- Next Button -->
+              <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                <a class="page-link rounded-2" href="?{{ merge_query_args(page=pagination.next_num) if pagination.has_next else '#' }}" tabindex="{% if not pagination.has_next %}-1{% endif %}">
+                  Next <i class="bi bi-chevron-right"></i>
+                </a>
+              </li>
+            </ul>
+          </nav>
+        {% endif %}
+
+      {% else %}
+        <!-- Polished Empty State without fake data -->
+        <div class="card border-0 shadow-sm p-5 bg-white rounded-4 text-center">
+          <div class="ds-empty-icon mx-auto mb-3">
+            <i class="bi bi-tag-fill text-muted fs-1"></i>
+          </div>
+          <h4 class="fw-bold mb-2">No Matching Deals Available</h4>
+          <p class="text-muted max-w-500 mx-auto mb-4" style="max-width: 480px;">
+            {% if selected_category or selected_merchant or min_price or max_price or min_discount or query_str %}
+              We couldn't find any active deals matching your active filters. Try loosening your price or discount criteria.
+            {% else %}
+              There are currently no active deals published in this section. Our team verifies discounts before publishing.
+            {% endif %}
+          </p>
+          <div class="d-flex justify-content-center gap-2">
+            <a href="{{ url_for('main.deals_list') }}" class="btn btn-primary-ds">
+              <i class="bi bi-collection me-1"></i> View All Deals
+            </a>
+            <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary">
+              <i class="bi bi-house me-1"></i> Back to Homepage
+            </a>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Mobile Filter Offcanvas Drawer -->
+<div class="offcanvas offcanvas-start" tabindex="-1" id="filterDrawer" aria-labelledby="filterDrawerLabel">
+  <div class="offcanvas-header border-bottom">
+    <h5 class="offcanvas-title fw-bold" id="filterDrawerLabel"><i class="bi bi-funnel text-primary-custom me-2"></i>Filter Deals</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body p-4">
+    <form action="{{ url_for('main.deals_list') if not selected_category else url_for('main.category_deals', slug=selected_category.slug) }}" method="GET">
+      {% if query_str %}
+        <input type="hidden" name="q" value="{{ query_str }}">
+      {% endif %}
+      <input type="hidden" name="sort" value="{{ sort_by }}">
+
+      {% if not selected_category %}
+        <div class="mb-3">
+          <label class="form-label fw-bold small text-uppercase text-muted">Category</label>
+          <select name="category" class="form-select">
+            <option value="">All Categories</option>
+            {% for cat in categories %}
+              <option value="{{ cat.slug }}" {% if selected_category and selected_category.slug == cat.slug %}selected{% endif %}>
+                {{ cat.name }} ({{ category_counts.get(cat.id, 0) }})
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+      {% endif %}
+
+      <div class="mb-3">
+        <label class="form-label fw-bold small text-uppercase text-muted">Merchant Store</label>
+        <select name="merchant" class="form-select">
+          <option value="">All Partner Stores</option>
+          {% for m in merchants %}
+            <option value="{{ m.slug }}" {% if selected_merchant and selected_merchant.slug == m.slug %}selected{% endif %}>
+              {{ m.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-bold small text-uppercase text-muted">Price Range (₹)</label>
+        <div class="row g-2">
+          <div class="col-6">
+            <input type="number" min="0" step="10" name="min_price" class="form-control" placeholder="Min ₹" value="{{ min_price }}">
+          </div>
+          <div class="col-6">
+            <input type="number" min="0" step="10" name="max_price" class="form-control" placeholder="Max ₹" value="{{ max_price }}">
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label fw-bold small text-uppercase text-muted">Minimum Discount</label>
+        <select name="min_discount" class="form-select">
+          <option value="">Any Discount</option>
+          <option value="10" {% if min_discount == '10' %}selected{% endif %}>10% or more</option>
+          <option value="20" {% if min_discount == '20' %}selected{% endif %}>20% or more</option>
+          <option value="30" {% if min_discount == '30' %}selected{% endif %}>30% or more</option>
+          <option value="40" {% if min_discount == '40' %}selected{% endif %}>40% or more</option>
+          <option value="50" {% if min_discount == '50' %}selected{% endif %}>50% or more</option>
+          <option value="70" {% if min_discount == '70' %}selected{% endif %}>70% or more</option>
+        </select>
+      </div>
+
+      <div class="d-grid gap-2">
+        <button type="submit" class="btn btn-primary-ds">Apply Filters</button>
+        <a href="{{ url_for('main.deals_list') if not selected_category else url_for('main.category_deals', slug=selected_category.slug) }}" class="btn btn-outline-secondary">Reset Filters</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

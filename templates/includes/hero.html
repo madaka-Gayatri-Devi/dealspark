@@ -1,0 +1,162 @@
+<section class="ds-hero position-relative">
+  <!-- Floating Decorative Deal Tags -->
+  <div class="hero-float-pill hero-float-pill-1 d-none d-xl-inline-flex">
+    <span class="p-1 rounded-circle bg-danger text-white fs-6 d-flex align-items-center justify-content-center" style="width: 22px; height: 22px;">🔥</span>
+    <span>Verified Price Drops Today</span>
+  </div>
+  <div class="hero-float-pill hero-float-pill-2 d-none d-xl-inline-flex">
+    <span class="p-1 rounded-circle bg-warning text-dark fs-6 d-flex align-items-center justify-content-center" style="width: 22px; height: 22px;">⚡</span>
+    <span>Up to 80% Off Top Brands</span>
+  </div>
+  <div class="hero-float-pill hero-float-pill-3 d-none d-xxl-inline-flex">
+    <span class="p-1 rounded-circle bg-success text-white fs-6 d-flex align-items-center justify-content-center" style="width: 22px; height: 22px;">🛡️</span>
+    <span>Direct Merchant Checkout</span>
+  </div>
+
+  <div class="container position-relative">
+    <div class="row align-items-center g-5">
+      <!-- Left Column: Copy, Live Search, CTAs -->
+      <div class="col-lg-7 text-center text-lg-start">
+        <div class="hero-fade-1">
+          <div class="ds-hero-badge mx-auto mx-lg-0 mb-3">
+            <i class="bi bi-patch-check-fill text-warning"></i>
+            <span>Real-Time Indian Online Deals & Price Tracker</span>
+          </div>
+        </div>
+
+        <div class="hero-fade-2">
+          <h1 class="ds-hero-title mb-3">
+            Never Pay Full Price Again with <span class="highlight">DealSpark</span>
+          </h1>
+          <p class="ds-hero-subtitle mb-4">
+            Track genuine price drops across Amazon, Flipkart, Myntra, Ajio, and Croma. Real savings verified from authentic retailer prices.
+          </p>
+        </div>
+
+        <!-- Prominent Hero Live Search Bar -->
+        <div class="hero-fade-3">
+          <div class="ds-hero-search-wrapper mx-auto mx-lg-0 mb-4">
+            <form action="{{ url_for('main.search') }}" method="GET" class="ds-hero-search-form position-relative" id="heroSearchForm">
+              <div class="input-group input-group-lg shadow-lg rounded-pill overflow-hidden bg-white p-1 border">
+                <span class="input-group-text bg-transparent border-0 ps-3 text-muted">
+                  <i class="bi bi-search fs-5 text-primary-custom"></i>
+                </span>
+                <input type="text"
+                       name="q"
+                       id="heroSearchInput"
+                       class="form-control border-0 shadow-none ps-2"
+                       placeholder="Search Kurtis, Headphones, Running Shoes, Laptops..."
+                       aria-label="Search deals across top stores"
+                       autocomplete="off"
+                       required>
+                <button type="button" class="btn btn-link text-muted border-0 d-none" id="heroSearchClear" aria-label="Clear search">
+                  <i class="bi bi-x-circle-fill"></i>
+                </button>
+                <button class="btn btn-primary-ds rounded-pill px-4 fw-bold shadow-sm" type="submit">
+                  <span>Find Deals</span>
+                </button>
+              </div>
+              <!-- Hero Search Autocomplete Dropdown -->
+              <div id="heroSuggestionsBox" class="ds-autocomplete-dropdown shadow-lg rounded-4 d-none text-start"></div>
+            </form>
+
+            <!-- Popular Quick Tags -->
+            <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start gap-2 mt-3 small text-muted">
+              <span class="fw-bold text-dark"><i class="bi bi-lightning-charge-fill text-warning"></i> Popular:</span>
+              {% for cat in nav_categories[:4] %}
+                <a href="{{ url_for('main.category_deals', slug=cat.slug) }}" class="badge bg-white text-dark border text-decoration-none py-1 px-3 rounded-pill hover-primary shadow-xs">
+                  {{ cat.name }}
+                </a>
+              {% else %}
+                <a href="{{ url_for('main.deals_list') }}?q=kurti" class="badge bg-white text-dark border text-decoration-none py-1 px-3 rounded-pill shadow-xs">Kurtis</a>
+                <a href="{{ url_for('main.deals_list') }}?q=headphones" class="badge bg-white text-dark border text-decoration-none py-1 px-3 rounded-pill shadow-xs">Headphones</a>
+                <a href="{{ url_for('main.deals_list') }}?q=smartphones" class="badge bg-white text-dark border text-decoration-none py-1 px-3 rounded-pill shadow-xs">Smartphones</a>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Action CTAs -->
+        <div class="hero-fade-4">
+          <div class="d-flex flex-wrap justify-content-center justify-content-lg-start gap-3">
+            <a href="{{ url_for('main.deals_list') }}?sort=popular" class="btn btn-primary-ds btn-lg d-inline-flex align-items-center gap-2 shadow">
+              <i class="bi bi-fire text-warning"></i>
+              <span>Explore Trending Deals</span>
+            </a>
+            <a href="#browse-categories" class="btn btn-outline-ds btn-lg d-inline-flex align-items-center gap-2 bg-white">
+              <i class="bi bi-grid-3x3-gap-fill text-primary"></i>
+              <span>Browse Categories</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Live Statistics Counter Panel -->
+      <div class="col-lg-5 hero-fade-3">
+        <div class="row g-3">
+          <div class="col-6">
+            <div class="ds-trust-card h-100">
+              <div class="ds-trust-icon">
+                <i class="bi bi-tags-fill"></i>
+              </div>
+              <div>
+                <h3 class="h3 mb-0 fw-bold text-dark">
+                  <span data-counter="{{ stats.total_deals if stats and stats.total_deals > 0 else 10 }}">{{ stats.total_deals if stats and stats.total_deals > 0 else '10+' }}</span>
+                </h3>
+                <div class="text-muted small">Verified Deals</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="ds-trust-card h-100">
+              <div class="ds-trust-icon" style="background-color: #fef3c7; color: #d97706;">
+                <i class="bi bi-collection-fill"></i>
+              </div>
+              <div>
+                <h3 class="h3 mb-0 fw-bold text-dark">
+                  <span data-counter="{{ stats.total_categories if stats and stats.total_categories > 0 else 8 }}">{{ stats.total_categories if stats and stats.total_categories > 0 else '8' }}</span>
+                </h3>
+                <div class="text-muted small">Top Categories</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="ds-trust-card h-100">
+              <div class="ds-trust-icon" style="background-color: #e0f2fe; color: #0284c7;">
+                <i class="bi bi-shop-window"></i>
+              </div>
+              <div>
+                <h3 class="h3 mb-0 fw-bold text-dark">
+                  <span data-counter="{{ stats.total_merchants if stats and stats.total_merchants > 0 else 6 }}">{{ stats.total_merchants if stats and stats.total_merchants > 0 else '6' }}</span>
+                </h3>
+                <div class="text-muted small">Partner Stores</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="ds-trust-card h-100">
+              <div class="ds-trust-icon" style="background-color: #dcfce7; color: #16a34a;">
+                <i class="bi bi-percent"></i>
+              </div>
+              <div>
+                <h3 class="h3 mb-0 fw-bold text-dark">Up to 80%</h3>
+                <div class="text-muted small">Authentic Savings</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Trust Guarantee Pill -->
+        <div class="mt-4 p-3 bg-white rounded-4 border shadow-sm d-flex align-items-center gap-3">
+          <div class="p-2 rounded-circle bg-success bg-opacity-10 text-success fs-4 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+            <i class="bi bi-shield-check"></i>
+          </div>
+          <div class="small">
+            <span class="fw-bold text-dark d-block">Zero Deceptive Markups</span>
+            <span class="text-muted">Prices are verified against real merchant listing URLs before publishing.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

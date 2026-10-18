@@ -1,0 +1,116 @@
+<div class="deal-card">
+  <!-- Deal Image & Overlay Badges -->
+  <div class="deal-img-wrapper">
+    <!-- Top-Left Badges (Discount & Featured) -->
+    <div class="deal-badges-start">
+      {% if deal.discount_percentage and deal.discount_percentage > 0 %}
+        <span class="badge-discount">{{ deal.formatted_discount_percentage }}% OFF</span>
+      {% endif %}
+      {% if deal.is_featured %}
+        <span class="badge-featured" title="Featured Price Drop">
+          <i class="bi bi-lightning-charge-fill text-warning"></i> Hot
+        </span>
+      {% endif %}
+    </div>
+
+    <!-- Top-Right Badges (Merchant & Wishlist) -->
+    <div class="deal-badges-end">
+      {% if deal.merchant %}
+        <span class="merchant-pill">
+          <span class="merchant-pill-dot" style="background-color: {{ deal.merchant.badge_color }};"></span>
+          {{ deal.merchant.name }}
+        </span>
+      {% endif %}
+
+      <!-- Wishlist Action -->
+      <button type="button"
+              class="btn-wishlist-card {% if user_fav_ids and deal.id in user_fav_ids %}is-active{% endif %}"
+              data-deal-id="{{ deal.id }}"
+              onclick="toggleDealFavorite({{ deal.id }}, this)"
+              title="Save to favorites"
+              aria-label="Save Deal">
+        <i class="bi {% if user_fav_ids and deal.id in user_fav_ids %}bi-heart-fill text-danger{% else %}bi-heart{% endif %}"></i>
+      </button>
+    </div>
+
+    <a href="{{ url_for('main.deal_detail', slug=deal.slug) }}" class="deal-img-link" title="{{ deal.title }}">
+      <img src="{{ deal.image_url }}" alt="{{ deal.title }}" class="deal-img" loading="lazy" onerror="this.onerror=null; this.src='https://placehold.co/300x200/f8fafc/64748b?text=DealSpark';">
+    </a>
+  </div>
+
+  <!-- Deal Content -->
+  <div class="deal-content">
+    <div class="d-flex align-items-center justify-content-between mb-1">
+      {% if deal.category %}
+        <a href="{{ url_for('main.category_deals', slug=deal.category.slug) }}" class="deal-category text-decoration-none">
+          {{ deal.category.name }}
+        </a>
+      {% endif %}
+
+      {% if deal.is_price_verified %}
+        <span class="badge-verified-price" title="Verified through direct merchant data source">
+          <i class="bi bi-patch-check-fill text-success"></i> Verified
+        </span>
+      {% else %}
+        <span class="badge-manual-price" title="Manually entered deal price">
+          <i class="bi bi-pencil-square"></i> Manual
+        </span>
+      {% endif %}
+    </div>
+
+    <h3 class="deal-title">
+      <a href="{{ url_for('main.deal_detail', slug=deal.slug) }}" class="text-decoration-none text-dark" title="{{ deal.title }}">
+        {{ deal.title }}
+      </a>
+    </h3>
+
+    <!-- Pricing Row -->
+    <div class="deal-price-row">
+      <span class="deal-price-discounted">{{ deal.formatted_discounted_price }}</span>
+      {% if deal.original_price and deal.original_price > deal.discounted_price %}
+        <span class="deal-price-original">{{ deal.formatted_original_price }}</span>
+      {% endif %}
+    </div>
+
+    <!-- Savings Tag -->
+    {% if deal.savings_amount and deal.savings_amount > 0 %}
+      <div class="deal-savings-tag">
+        <i class="bi bi-tag-fill"></i>
+        <span>Save {{ deal.formatted_savings }}</span>
+      </div>
+    {% endif %}
+
+    <!-- Actions (Details, Buy Now, Share) -->
+    <div class="deal-actions">
+      <a href="{{ url_for('main.deal_detail', slug=deal.slug) }}" class="btn-view-details" title="View Full Details">
+        <span>Details</span>
+      </a>
+
+      <a href="{{ url_for('affiliate.redirect_deal', product_id=deal.id) }}" target="_blank" rel="noopener noreferrer nofollow" class="btn-buy-now" title="Go to {{ deal.merchant.name if deal.merchant else 'Store' }}">
+        <span>Buy Now</span>
+        <i class="bi bi-box-arrow-up-right"></i>
+      </a>
+
+      <!-- Share Dropdown -->
+      <div class="dropdown">
+        <button class="btn-share-deal" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Share Deal">
+          <i class="bi bi-share"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+          <li>
+            <button class="dropdown-item d-flex align-items-center gap-2" onclick="shareOnWhatsApp('{{ deal.title|escape }}', '{{ url_for('main.deal_detail', slug=deal.slug, _external=True) }}', '{{ deal.formatted_discounted_price }}')">
+              <i class="bi bi-whatsapp text-success"></i>
+              <span>Share on WhatsApp</span>
+            </button>
+          </li>
+          <li>
+            <button class="dropdown-item d-flex align-items-center gap-2" onclick="copyDealLink('{{ url_for('main.deal_detail', slug=deal.slug, _external=True) }}', '{{ deal.title|escape }}')">
+              <i class="bi bi-link-45deg"></i>
+              <span>Copy Deal Link</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>

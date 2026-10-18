@@ -1,0 +1,337 @@
+{% extends "base.html" %}
+
+{% block title %}DealSpark — Real-Time Online Shopping Deals & Price Comparison{% endblock %}
+
+{% block content %}
+  <!-- 1. Hero Section -->
+  {% include 'includes/hero.html' %}
+
+  <!-- 2. Verified Partner Stores Strip -->
+  <section class="py-4 border-bottom bg-white ds-reveal" id="partner-merchants">
+    <div class="container">
+      <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
+        <div class="d-flex align-items-center gap-2 text-muted small fw-semibold text-uppercase">
+          <i class="bi bi-shield-check text-success fs-5"></i>
+          <span>Partner Stores:</span>
+        </div>
+        <div class="d-flex flex-wrap gap-2 justify-content-center">
+          {% for merch in merchants %}
+            <a href="{{ url_for('main.deals_list') }}?merchant={{ merch.slug }}" class="merchant-pill-tag text-decoration-none">
+              <span class="merchant-pill-dot" style="background-color: {{ merch.badge_color }};"></span>
+              <span>{{ merch.name }}</span>
+            </a>
+          {% else %}
+            <span class="merchant-pill-tag">Amazon India</span>
+            <span class="merchant-pill-tag">Flipkart</span>
+            <span class="merchant-pill-tag">Myntra</span>
+            <span class="merchant-pill-tag">Ajio</span>
+            <span class="merchant-pill-tag">Croma</span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Trending Deals Section -->
+  {% if trending_deals %}
+    <section class="py-5 ds-reveal" id="trending-deals">
+      <div class="container">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+          <div class="d-flex align-items-center gap-2">
+            <div class="p-2 rounded bg-danger text-white"><i class="bi bi-fire fs-5"></i></div>
+            <div>
+              <h2 class="h3 fw-bold mb-0">Trending Deals</h2>
+              <p class="text-muted small mb-0">Most viewed and high-interest price drops today</p>
+            </div>
+          </div>
+          <a href="{{ url_for('main.deals_list') }}?sort=popular" class="btn btn-outline-ds btn-sm">
+            View All Trending <i class="bi bi-arrow-right ms-1"></i>
+          </a>
+        </div>
+
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+          {% for deal in trending_deals %}
+            <div class="col">
+              {% include 'includes/deal_card.html' %}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+  {% endif %}
+
+  <!-- 4. Shop by Category Section -->
+  <section class="py-5 bg-white border-top border-bottom ds-reveal" id="browse-categories">
+    <div class="container">
+      <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+          <h2 class="h3 fw-bold mb-1">Shop by Category</h2>
+          <p class="text-muted small mb-0">Explore verified discounts across top product categories</p>
+        </div>
+        <a href="{{ url_for('main.deals_list') }}" class="btn btn-outline-ds btn-sm">
+          All Deals <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+      </div>
+
+      <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-xl-6 g-3 g-xl-4">
+        {% for cat in categories %}
+          {% set p_count = category_counts.get(cat.id, 0) %}
+          <div class="col">
+            <a href="{{ url_for('main.category_deals', slug=cat.slug) }}" class="category-card-link h-100">
+              <div class="category-card">
+                <div class="category-icon-box">
+                  <i class="bi {{ cat.icon }}"></i>
+                </div>
+                <h3 class="category-title text-truncate w-100">{{ cat.name }}</h3>
+                <span class="category-deal-count">
+                  <i class="bi bi-tag-fill text-primary-custom" style="font-size: 0.65rem;"></i>
+                  {{ p_count }} Deals
+                </span>
+              </div>
+            </a>
+          </div>
+        {% else %}
+          <div class="col-12 text-center text-muted py-3">
+            <span>Categories will appear here after initial database setup.</span>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. Featured Deals Section -->
+  <section class="py-5 ds-reveal" id="featured-deals">
+    <div class="container">
+      <div class="d-flex align-items-center justify-content-between mb-4">
+        <div class="d-flex align-items-center gap-2">
+          <div class="p-2 rounded bg-primary text-white"><i class="bi bi-lightning-charge-fill fs-5"></i></div>
+          <div>
+            <h2 class="h3 fw-bold mb-0">Featured Price Drops</h2>
+            <p class="text-muted small mb-0">Handpicked top discounts from verified sellers</p>
+          </div>
+        </div>
+        {% if featured_deals %}
+          <a href="{{ url_for('main.deals_list') }}" class="btn btn-outline-ds btn-sm">
+            View All <i class="bi bi-arrow-right ms-1"></i>
+          </a>
+        {% endif %}
+      </div>
+
+      {% if featured_deals %}
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+          {% for deal in featured_deals %}
+            <div class="col">
+              {% include 'includes/deal_card.html' %}
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <!-- Honest empty state without fake data -->
+        <div class="ds-empty-state">
+          <div class="ds-empty-icon">
+            <i class="bi bi-tag"></i>
+          </div>
+          <h4 class="fw-bold mb-2">No Featured Deals Published Yet</h4>
+          <p class="text-muted max-w-500 mx-auto mb-4" style="max-width: 480px;">
+            We publish genuine shopping discounts directly verified with merchant URLs. Deals will appear here as soon as they are added and verified.
+          </p>
+          {% if current_user.is_authenticated and current_user.is_admin %}
+            <a href="{{ url_for('admin.manage_products') }}" class="btn btn-primary-ds">
+              <i class="bi bi-plus-circle me-1"></i> Add Deals in Admin Dashboard
+            </a>
+          {% else %}
+            <div class="d-inline-flex align-items-center gap-2 px-3 py-2 rounded-pill bg-light border text-muted small">
+              <i class="bi bi-bell-fill text-warning"></i>
+              <span>Deals are currently being verified and will appear automatically.</span>
+            </div>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <!-- 6. Top Discounts Section -->
+  {% if best_discount_deals %}
+    <section class="py-5 bg-white border-top border-bottom ds-reveal" id="best-discounts">
+      <div class="container">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+          <div class="d-flex align-items-center gap-2">
+            <div class="p-2 rounded bg-success text-white"><i class="bi bi-percent fs-5"></i></div>
+            <div>
+              <h2 class="h3 fw-bold mb-0">Top Discounts</h2>
+              <p class="text-muted small mb-0">Highest percentage savings verified across stores</p>
+            </div>
+          </div>
+          <a href="{{ url_for('main.deals_list') }}?sort=discount_desc" class="btn btn-outline-ds btn-sm">
+            See All High Discounts <i class="bi bi-arrow-right ms-1"></i>
+          </a>
+        </div>
+
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+          {% for deal in best_discount_deals %}
+            <div class="col">
+              {% include 'includes/deal_card.html' %}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+  {% endif %}
+
+  <!-- 7. Recently Added Deals Section -->
+  {% if latest_deals %}
+    <section class="py-5 ds-reveal" id="latest-deals">
+      <div class="container">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+          <div class="d-flex align-items-center gap-2">
+            <div class="p-2 rounded bg-dark text-white"><i class="bi bi-clock-history fs-5"></i></div>
+            <div>
+              <h2 class="h3 fw-bold mb-0">Recently Added Deals</h2>
+              <p class="text-muted small mb-0">Newest discounts published across all categories</p>
+            </div>
+          </div>
+          <a href="{{ url_for('main.deals_list') }}" class="btn btn-outline-ds btn-sm">
+            Explore All Deals <i class="bi bi-arrow-right ms-1"></i>
+          </a>
+        </div>
+
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+          {% for deal in latest_deals %}
+            <div class="col">
+              {% include 'includes/deal_card.html' %}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+  {% endif %}
+
+  <!-- 8. Popular Products Section (Rendered ONLY if genuine click data exists) -->
+  {% if popular_deals %}
+    <section class="py-5 bg-white border-top border-bottom ds-reveal" id="popular-deals">
+      <div class="container">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+          <div class="d-flex align-items-center gap-2">
+            <div class="p-2 rounded bg-warning text-dark"><i class="bi bi-graph-up-arrow fs-5"></i></div>
+            <div>
+              <h2 class="h3 fw-bold mb-0">Popular Products</h2>
+              <p class="text-muted small mb-0">Most clicked offers tracked from actual shoppers</p>
+            </div>
+          </div>
+          <a href="{{ url_for('main.deals_list') }}?sort=popular" class="btn btn-outline-ds btn-sm">
+            View Popular <i class="bi bi-arrow-right ms-1"></i>
+          </a>
+        </div>
+
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+          {% for deal in popular_deals %}
+            <div class="col">
+              {% include 'includes/deal_card.html' %}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+  {% endif %}
+
+  <!-- 9. Client-Side Recently Viewed Products Section -->
+  <section class="py-5 bg-white border-top border-bottom d-none ds-reveal" id="recentlyViewedSection">
+    <div class="container">
+      <div class="d-flex align-items-center justify-content-between mb-4">
+        <div class="d-flex align-items-center gap-2">
+          <div class="p-2 rounded bg-info bg-opacity-10 text-primary-custom"><i class="bi bi-eye-fill fs-5"></i></div>
+          <div>
+            <h2 class="h3 fw-bold mb-0">Recently Viewed Deals</h2>
+            <p class="text-muted small mb-0">Products you checked out during your browsing session</p>
+          </div>
+        </div>
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearRecentlyViewed()">
+          <i class="bi bi-trash3 me-1"></i> Clear History
+        </button>
+      </div>
+
+      <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4" id="recentlyViewedRow">
+        <!-- Injected via JavaScript from localStorage -->
+      </div>
+    </div>
+  </section>
+
+  <!-- 10. Explore More Deals High-Impact CTA Banner -->
+  <section class="py-5 ds-reveal">
+    <div class="container">
+      <div class="card border-0 rounded-4 overflow-hidden shadow-sm text-white" style="background: linear-gradient(135deg, var(--ds-navy) 0%, #1e293b 100%);">
+        <div class="card-body p-4 p-md-5 text-center">
+          <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold mb-3">
+            <i class="bi bi-tag-fill me-1"></i> Never Miss a Real Price Drop
+          </span>
+          <h2 class="display-6 fw-bold mb-3">Looking for something specific?</h2>
+          <p class="text-white-50 mx-auto mb-4" style="max-width: 600px;">
+            Browse our full catalog of active deals across electronics, fashion, home essentials, and more. Filter by retailer, price, or discount percentage.
+          </p>
+          <div class="d-flex flex-wrap justify-content-center gap-3">
+            <a href="{{ url_for('main.deals_list') }}" class="btn btn-primary-ds btn-lg px-4 shadow">
+              <i class="bi bi-grid me-1"></i> Explore All Deals Catalog
+            </a>
+            <a href="#partner-merchants" class="btn btn-outline-light btn-lg px-4">
+              <i class="bi bi-shop me-1"></i> Browse by Store
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11. Trust Features & Value Proposition -->
+  <section class="py-5 bg-light border-top ds-reveal">
+    <div class="container">
+      <div class="text-center mb-5">
+        <h2 class="h3 fw-bold">Why Shop Through DealSpark?</h2>
+        <p class="text-muted">Transparency, authentic discounts, and zero deceptive markups</p>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="card h-100 border-0 p-4 shadow-sm bg-white rounded-3">
+            <div class="d-flex align-items-center gap-3 mb-3">
+              <div class="p-3 rounded-circle bg-success bg-opacity-10 text-success fs-4">
+                <i class="bi bi-check2-circle"></i>
+              </div>
+              <h5 class="fw-bold mb-0">Genuine Price Math</h5>
+            </div>
+            <p class="text-muted small mb-0">
+              Savings and discount percentages are calculated strictly from the merchant's real original price. We never fabricate inflated discounts.
+            </p>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="card h-100 border-0 p-4 shadow-sm bg-white rounded-3">
+            <div class="d-flex align-items-center gap-3 mb-3">
+              <div class="p-3 rounded-circle bg-primary bg-opacity-10 text-primary fs-4">
+                <i class="bi bi-box-arrow-up-right"></i>
+              </div>
+              <h5 class="fw-bold mb-0">Direct Store Checkout</h5>
+            </div>
+            <p class="text-muted small mb-0">
+              Every Buy Now link takes you directly to official merchant portals like Amazon and Flipkart. You complete payments safely on their secure websites.
+            </p>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="card h-100 border-0 p-4 shadow-sm bg-white rounded-3">
+            <div class="d-flex align-items-center gap-3 mb-3">
+              <div class="p-3 rounded-circle bg-warning bg-opacity-10 text-warning fs-4">
+                <i class="bi bi-shield-lock"></i>
+              </div>
+              <h5 class="fw-bold mb-0">Privacy & Safe Redirects</h5>
+            </div>
+            <p class="text-muted small mb-0">
+              Destination URLs are validated against a domain whitelist to prevent phishing and malicious redirects. Your data is always protected.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock %}

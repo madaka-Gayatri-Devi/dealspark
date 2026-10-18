@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Administrator Sign-In — DealSpark{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5 col-xl-4">
+      <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white">
+        <!-- Admin Header -->
+        <div class="text-center mb-4">
+          <div class="d-inline-flex p-3 rounded-circle bg-danger bg-opacity-10 text-danger mb-3">
+            <i class="bi bi-shield-lock-fill fs-2"></i>
+          </div>
+          <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-3 py-1 small fw-bold d-inline-block mb-2">
+            Administrator Portal
+          </span>
+          <h2 class="h4 fw-bold mb-1 text-dark">Admin Sign-In</h2>
+          <p class="text-muted small mb-0">DealSpark Control Panel & Deals Management</p>
+        </div>
+
+        <!-- Administrator Login Form -->
+        <form method="POST" action="{{ url_for('auth.login', next=request.args.get('next')) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+          <div class="mb-3">
+            <label for="email" class="form-label small fw-semibold text-dark">Administrator Email or Username</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light border-end-0"><i class="bi bi-person text-secondary"></i></span>
+              <input type="text" class="form-control border-start-0" id="email" name="email" placeholder="Admin username or email" required autofocus>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="password" class="form-label small fw-semibold text-dark">Password</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light border-end-0"><i class="bi bi-lock text-secondary"></i></span>
+              <input type="password" class="form-control border-start-0" id="password" name="password" placeholder="Enter admin password" required>
+            </div>
+          </div>
+
+          <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" id="remember" name="remember" value="1">
+            <label class="form-check-label small text-muted" for="remember">Keep session active</label>
+          </div>
+
+          <button type="submit" class="btn btn-primary-ds w-100 py-2 mt-2 fw-bold d-flex align-items-center justify-content-center gap-2">
+            <i class="bi bi-shield-lock"></i>
+            <span>Sign In to Admin Center</span>
+          </button>
+        </form>
+
+        <div class="text-center mt-4 pt-3 border-top">
+          <p class="small text-muted mb-2">
+            DealSpark is an open shopping portal. Visitors do not need an account to browse deals.
+          </p>
+          <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-semibold">
+            <i class="bi bi-arrow-left me-1"></i> Return to Live Deals
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

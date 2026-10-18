@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %}
+  {% if query %}
+    Search Results for "{{ query }}" — DealSpark
+  {% else %}
+    Search Online Deals & Offers — DealSpark
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Breadcrumb Navigation -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb small">
+      <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}" class="text-decoration-none">Home</a></li>
+      <li class="breadcrumb-item"><a href="{{ url_for('main.deals_list') }}" class="text-decoration-none">Deals</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Search</li>
+    </ol>
+  </nav>
+
+  <!-- Search Header & Refined Search Bar -->
+  <div class="p-4 rounded-4 bg-white border shadow-sm mb-4">
+    <div class="row align-items-center g-3">
+      <div class="col-lg-6">
+        <h1 class="h3 fw-bold mb-1">
+          {% if query %}
+            Results for "<span class="text-primary-custom">{{ query }}</span>"
+          {% else %}
+            Search Deals
+          {% endif %}
+        </h1>
+        <p class="text-muted small mb-0">Found {{ pagination.total }} active verified deals</p>
+      </div>
+
+      <div class="col-lg-6">
+        <form action="{{ url_for('main.search') }}" method="GET" class="ds-search-group">
+          <input type="text" name="q" class="form-control" placeholder="Search another product, brand, or model..." value="{{ query }}" required>
+          <button class="ds-search-btn" type="submit">
+            <i class="bi bi-search"></i> Search
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Desktop Sidebar Filters -->
+    <div class="col-lg-3 d-none d-lg-block">
+      <div class="card border-0 shadow-sm p-4 bg-white rounded-4 sticky-top" style="top: 85px; z-index: 10;">
+        <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+          <h5 class="fw-bold mb-0"><i class="bi bi-sliders text-primary-custom me-2"></i>Filter Results</h5>
+          {% if selected_category or selected_merchant or min_price or max_price or min_discount %}
+            <a href="{{ url_for('main.search', q=query) }}" class="text-danger small fw-semibold text-decoration-none">
+              Clear Filters
+            </a>
+          {% endif %}
+        </div>
+
+        <form action="{{ url_for('main.search') }}" method="GET">
+          <input type="hidden" name="q" value="{{ query }}">
+          <input type="hidden" name="sort" value="{{ sort_by }}">
+
+          <div class="mb-3">
+            <label class="form-label fw-bold small text-uppercase text-muted">Category</label>
+            <select name="category" class="form-select form-select-sm">
+              <option value="">All Categories</option>
+              {% for cat in categories %}
+                <option value="{{ cat.slug }}" {% if selected_category and selected_category.slug == cat.slug %}selected{% endif %}>
+                  {{ cat.name }} ({{ category_counts.get(cat.id, 0) }})
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold small text-uppercase text-muted">Merchant Store</label>
+            <select name="merchant" class="form-select form-select-sm">
+              <option value="">All Partner Stores</option>
+              {% for m in merchants %}
+                <option value="{{ m.slug }}" {% if selected_merchant and selected_merchant.slug == m.slug %}selected{% endif %}>
+                  {{ m.name }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold small text-uppercase text-muted">Price Range (₹)</label>
+            <div class="row g-2">
+              <div class="col-6">
+                <input type="number" min="0" step="10" name="min_price" class="form-control form-control-sm" placeholder="Min ₹" value="{{ min_price }}">
+              </div>
+              <div class="col-6">
+                <input type="number" min="0" step="10" name="max_price" class="form-control form-control-sm" placeholder="Max ₹" value="{{ max_price }}">
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label fw-bold small text-uppercase text-muted">Minimum Discount</label>
+            <select name="min_discount" class="form-select form-select-sm">
+              <option value="">Any Discount</option>
+              <option value="10" {% if min_discount == '10' %}selected{% endif %}>10% or more</option>
+              <option value="20" {% if min_discount == '20' %}selected{% endif %}>20% or more</option>
+              <option value="30" {% if min_discount == '30' %}selected{% endif %}>30% or more</option>
+              <option value="40" {% if min_discount == '40' %}selected{% endif %}>40% or more</option>
+              <option value="50" {% if min_discount == '50' %}selected{% endif %}>50% or more</option>
+            </select>
+          </div>
+
+          <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary-ds btn-sm">Apply Filters</button>
+            <a href="{{ url_for('main.search', q=query) }}" class="btn btn-outline-secondary btn-sm">Reset</a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Deals Results Grid -->
+    <div class="col-lg-9">
+      <!-- Sort Bar -->
+      <div class="d-flex align-items-center justify-content-between mb-3 p-3 bg-white border rounded-3">
+        <span class="small text-muted">Showing {{ deals|length }} of {{ pagination.total }} items</span>
+        <div class="d-flex align-items-center gap-2">
+          <label for="sortSearchSelect" class="text-muted small text-nowrap">Sort:</label>
+          <select id="sortSearchSelect" class="form-select form-select-sm" style="min-width: 160px;" onchange="location = this.value;">
+            <option value="?{{ merge_query_args(sort='newest', page=1) }}" {% if sort_by == 'newest' %}selected{% endif %}>Newest</option>
+            <option value="?{{ merge_query_args(sort='price_asc', page=1) }}" {% if sort_by == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+            <option value="?{{ merge_query_args(sort='price_desc', page=1) }}" {% if sort_by == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+            <option value="?{{ merge_query_args(sort='discount_desc', page=1) }}" {% if sort_by == 'discount_desc' %}selected{% endif %}>Discount %</option>
+            <option value="?{{ merge_query_args(sort='popular', page=1) }}" {% if sort_by == 'popular' %}selected{% endif %}>Popularity</option>
+          </select>
+        </div>
+      </div>
+
+      {% if deals %}
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-2 row-cols-lg-3 row-cols-xl-3 row-cols-xxl-4 g-3 g-xl-4">
+          {% for deal in deals %}
+            <div class="col">
+              {% include 'includes/deal_card.html' %}
+            </div>
+          {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if pagination.pages > 1 %}
+          <nav aria-label="Search pagination" class="mt-5">
+            <ul class="pagination justify-content-center flex-wrap gap-1">
+              <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                <a class="page-link rounded-2" href="?{{ merge_query_args(page=pagination.prev_num) if pagination.has_prev else '#' }}">
+                  <i class="bi bi-chevron-left"></i> Previous
+                </a>
+              </li>
+              {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                {% if p %}
+                  <li class="page-item {% if p == pagination.page %}active{% endif %}">
+                    <a class="page-link rounded-2 {% if p == pagination.page %}bg-primary-custom border-0 text-white{% endif %}" href="?{{ merge_query_args(page=p) }}">
+                      {{ p }}
+                    </a>
+                  </li>
+                {% else %}
+                  <li class="page-item disabled"><span class="page-link rounded-2 border-0">…</span></li>
+                {% endif %}
+              {% endfor %}
+              <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                <a class="page-link rounded-2" href="?{{ merge_query_args(page=pagination.next_num) if pagination.has_next else '#' }}">
+                  Next <i class="bi bi-chevron-right"></i>
+                </a>
+              </li>
+            </ul>
+          </nav>
+        {% endif %}
+
+      {% else %}
+        <!-- Polished Empty State -->
+        <div class="card border-0 shadow-sm p-5 bg-white rounded-4 text-center">
+          <div class="ds-empty-icon mx-auto mb-3">
+            <i class="bi bi-search text-muted fs-1"></i>
+          </div>
+          <h4 class="fw-bold mb-2">No Matching Deals Found</h4>
+          <p class="text-muted max-w-500 mx-auto mb-4" style="max-width: 480px;">
+            {% if query %}
+              We couldn't find any deals matching "<strong>{{ query }}</strong>". Try searching for brand names like <em>Sony</em>, <em>Samsung</em>, <em>Nike</em>, or browse by category.
+            {% else %}
+              Enter keywords or browse all deals to discover verified discounts.
+            {% endif %}
+          </p>
+          <div class="d-flex justify-content-center gap-2">
+            <a href="{{ url_for('main.deals_list') }}" class="btn btn-primary-ds">
+              <i class="bi bi-collection me-1"></i> Explore All Deals
+            </a>
+            <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary">
+              <i class="bi bi-house me-1"></i> Back to Homepage
+            </a>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

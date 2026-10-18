@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}500 - Server Error — DealSpark{% endblock %}
+
+{% block content %}
+<div class="container py-5 text-center">
+  <div class="py-5">
+    <div class="d-inline-flex p-4 rounded-circle bg-danger bg-opacity-10 text-danger mb-4">
+      <i class="bi bi-gear-wide-connected fs-1"></i>
+    </div>
+    <h1 class="display-5 fw-bold mb-2">Something Went Wrong (500)</h1>
+    <p class="text-muted lead max-w-500 mx-auto mb-4" style="max-width: 500px;">
+      An unexpected internal server error occurred. Our engineers have been alerted. Please try again shortly.
+    </p>
+    <a href="{{ url_for('main.index') }}" class="btn btn-primary-ds">
+      <i class="bi bi-arrow-clockwise me-1"></i> Refresh Homepage
+    </a>
+  </div>
+</div>
+{% endblock %}

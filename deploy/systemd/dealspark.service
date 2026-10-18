@@ -1,0 +1,26 @@
+[Unit]
+Description=DealSpark Flask Production Gunicorn Application Server
+After=network.target mysql.service
+
+[Service]
+Type=notify
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/dealspark
+Environment="PATH=/var/www/dealspark/venv/bin"
+EnvironmentFile=/var/www/dealspark/.env
+ExecStart=/var/www/dealspark/venv/bin/gunicorn \
+    --workers 3 \
+    --bind 127.0.0.1:8000 \
+    --access-logfile /var/log/dealspark/access.log \
+    --error-logfile /var/log/dealspark/error.log \
+    --capture-output \
+    --log-level info \
+    wsgi:app
+
+Restart=always
+RestartSec=5
+KillSignal=SIGQUIT
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Dashboard — DealSpark{% endblock %}</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Bootstrap 5.3.3 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+
+  <!-- Bootstrap Icons 1.11.3 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+  <!-- DealSpark Custom Theme Styles -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/logo.svg') }}">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="ds-dashboard-body">
+  <div class="ds-dashboard-wrapper">
+    <!-- Mobile Sidebar Backdrop Overlay -->
+    <div class="ds-sidebar-backdrop d-lg-none" id="dashboardSidebarBackdrop"></div>
+
+    <!-- Role-Based Persistent Sidebar -->
+    {% if current_user.is_authenticated and current_user.is_admin %}
+      {% include 'dashboard/includes/admin_sidebar.html' %}
+    {% else %}
+      {% include 'dashboard/includes/user_sidebar.html' %}
+    {% endif %}
+
+    <!-- Main Dashboard Area -->
+    <div class="ds-dashboard-content">
+      <!-- Shared Top Navigation Bar -->
+      {% include 'dashboard/includes/topbar.html' %}
+
+      <!-- Flash Alerts Notification Container -->
+      <div class="px-3 px-md-4 px-xl-5 pt-3">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show shadow-sm border-0 d-flex align-items-center gap-2 mb-3 rounded-3" role="alert">
+                <i class="bi {% if category == 'success' %}bi-check-circle-fill text-success{% elif category == 'danger' or category == 'error' %}bi-exclamation-octagon-fill text-danger{% else %}bi-info-circle-fill text-primary{% endif %} fs-5"></i>
+                <div class="flex-grow-1 small fw-semibold">{{ message }}</div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+      </div>
+
+      <!-- Main Scrollable Dashboard Content Block -->
+      <main class="ds-dashboard-main">
+        {% block dashboard_content %}{% endblock %}
+      </main>
+    </div>
+  </div>
+
+  <!-- Dynamic Toast Container -->
+  <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer"></div>
+
+  <!-- Bootstrap 5.3.3 JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+  <!-- DealSpark Main JS -->
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+  <!-- Dashboard Sidebar Toggle Script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const toggleBtn = document.getElementById('dashboardSidebarToggle');
+      const sidebar = document.getElementById('dashboardSidebar');
+      const backdrop = document.getElementById('dashboardSidebarBackdrop');
+
+      if (toggleBtn && sidebar && backdrop) {
+        toggleBtn.addEventListener('click', () => {
+          sidebar.classList.toggle('show');
+          backdrop.classList.toggle('show');
+        });
+
+        backdrop.addEventListener('click', () => {
+          sidebar.classList.remove('show');
+          backdrop.classList.remove('show');
+        });
+      }
+    });
+  </script>
+
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

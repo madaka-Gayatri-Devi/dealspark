@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Public Deals Platform — DealSpark{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5 text-center">
+      <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white">
+        <div class="d-inline-flex p-3 rounded-circle bg-primary bg-opacity-10 text-primary mb-3 mx-auto">
+          <i class="bi bi-gift-fill fs-2"></i>
+        </div>
+        <h2 class="h4 fw-bold mb-2 text-dark">No Account Needed!</h2>
+        <p class="text-muted small mb-4">
+          DealSpark is an open deals aggregator. You can discover verified discounts, compare prices, and purchase products directly without creating an account.
+        </p>
+        <div class="d-flex flex-column gap-2">
+          <a href="{{ url_for('main.deals_list') }}" class="btn btn-primary-ds py-2 fw-bold">
+            <i class="bi bi-fire me-1"></i> Browse All Deals
+          </a>
+          <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary py-2 fw-semibold">
+            <i class="bi bi-house me-1"></i> Return to Homepage
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

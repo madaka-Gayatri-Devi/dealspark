@@ -1,0 +1,89 @@
+<!-- DealSpark User Dashboard Sidebar Component -->
+<aside class="ds-dashboard-sidebar" id="dashboardSidebar">
+  <!-- Brand Area -->
+  <div class="ds-sidebar-brand d-flex align-items-center justify-content-between">
+    <a href="{{ url_for('main.index') }}" class="d-flex align-items-center gap-2 text-decoration-none">
+      <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="DealSpark" style="height: 32px;">
+    </a>
+    <span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25 rounded-pill px-2 py-1 small fw-bold">
+      Member
+    </span>
+  </div>
+
+  <!-- Navigation Menu Sections -->
+  <div class="ds-sidebar-body">
+    <!-- Section: DISCOVERY -->
+    <div class="ds-sidebar-section-title">My Deals</div>
+    <ul class="ds-sidebar-nav list-unstyled">
+      <li>
+        <a href="{{ url_for('auth.profile') }}" class="ds-sidebar-link {% if active_user_tab == 'overview' or (not active_user_tab and not active_tab) %}active{% endif %}">
+          <i class="bi bi-grid-1x2"></i>
+          <span>Overview</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('main.deals_list') }}" class="ds-sidebar-link">
+          <i class="bi bi-fire text-danger"></i>
+          <span>Browse Deals</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('main.deals_list') }}#browse-categories" class="ds-sidebar-link">
+          <i class="bi bi-collection"></i>
+          <span>Categories</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('main.favorites') }}" class="ds-sidebar-link {% if active_user_tab == 'favorites' %}active{% endif %}">
+          <i class="bi bi-heart text-danger"></i>
+          <span>Favorites</span>
+          {% if current_user.favorites.count() > 0 %}
+            <span class="badge bg-danger rounded-pill ms-auto small">{{ current_user.favorites.count() }}</span>
+          {% endif %}
+        </a>
+      </li>
+    </ul>
+
+    <!-- Section: ACCOUNT SETTINGS -->
+    <div class="ds-sidebar-section-title">Account</div>
+    <ul class="ds-sidebar-nav list-unstyled">
+      <li>
+        <a href="{{ url_for('auth.profile', tab='profile') }}" class="ds-sidebar-link {% if active_user_tab == 'profile' %}active{% endif %}">
+          <i class="bi bi-person"></i>
+          <span>Profile</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('auth.change_password') }}" class="ds-sidebar-link {% if active_user_tab == 'change_password' or active_tab == 'change_password' %}active{% endif %}">
+          <i class="bi bi-key"></i>
+          <span>Change Password</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('main.index') }}" class="ds-sidebar-link">
+          <i class="bi bi-house"></i>
+          <span>Return to Homepage</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Bottom User Profile Footer Card -->
+  <div class="ds-sidebar-footer">
+    <div class="d-flex align-items-center gap-2">
+      <div class="ds-avatar-circle bg-primary text-white">
+        {{ current_user.display_name[:1]|upper if current_user.display_name else 'U' }}
+      </div>
+      <div class="flex-grow-1 overflow-hidden">
+        <div class="fw-bold text-white text-truncate small">{{ current_user.display_name }}</div>
+        <div class="text-secondary text-truncate" style="font-size: 0.72rem;">{{ current_user.email }}</div>
+      </div>
+      <form action="{{ url_for('auth.logout') }}" method="POST" class="m-0 p-0">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <button type="submit" class="btn btn-link text-secondary hover-danger p-1" title="Sign Out">
+          <i class="bi bi-box-arrow-right fs-5"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+</aside>
