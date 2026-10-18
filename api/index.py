@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 from pathlib import Path
@@ -19,10 +20,25 @@ original_wsgi_app = app.wsgi_app
 
 def vercel_path_fixer(environ, start_response):
     """
-    WSGI middleware that parses the captured route parameter '__path'
-    from Vercel's rewrite rule into Flask's PATH_INFO, and cleans the query string.
+    WSGI middleware that normalizes PATH_INFO and SCRIPT_NAME for Vercel Serverless.
     """
     query_str = environ.get('QUERY_STRING', '')
+    if 'inspect_wsgi=1' in query_str:
+        start_response('200 OK', [('Content-Type', 'application/json')])
+        env_debug = {
+            'PATH_INFO': environ.get('PATH_INFO'),
+            'SCRIPT_NAME': environ.get('SCRIPT_NAME'),
+            'QUERY_STRING': environ.get('QUERY_STRING'),
+            'RAW_URI': environ.get('RAW_URI'),
+            'REQUEST_URI': environ.get('REQUEST_URI'),
+            'HTTP_X_FORWARDED_PATH': environ.get('HTTP_X_FORWARDED_PATH'),
+            'HTTP_X_MATCHED_PATH': environ.get('HTTP_X_MATCHED_PATH'),
+        }
+        return [json.dumps(env_debug, indent=2).encode('utf-8')]
+
+    # Reset SCRIPT_NAME so Flask treats root path correctly
+    environ['SCRIPT_NAME'] = ''
+
     if '__path' in query_str:
         params = parse_qs(query_str, keep_blank_values=True)
         raw_path = params.pop('__path', [''])[0]
