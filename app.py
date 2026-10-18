@@ -130,7 +130,13 @@ def register_error_handlers(app):
         resp = make_response(render_template('errors/404.html', error=error), 404)
         resp.headers['X-Debug-Path'] = request.path
         resp.headers['X-Debug-Url'] = request.url
-        resp.headers['X-Debug-Script-Root'] = request.script_root
+        for k in ['HTTP_X_FORWARDED_URI', 'HTTP_X_FORWARDED_PATH', 'HTTP_X_MATCHED_PATH', 'HTTP_X_REAL_IP', 'RAW_URI', 'REQUEST_URI', 'HTTP_REFERER']:
+            if k in request.environ:
+                resp.headers[f'X-Env-{k}'] = str(request.environ[k])
+        # Find any header containing 'path' or 'uri' or 'deals'
+        for k, v in request.environ.items():
+            if 'deals' in str(v).lower() or 'path' in k.lower() or 'uri' in k.lower():
+                resp.headers[f'X-Match-{k[:20]}'] = str(v)[:50]
         return resp
 
     @app.errorhandler(500)
