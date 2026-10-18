@@ -13,21 +13,34 @@ from app import create_app
 env_name = os.getenv('FLASK_ENV', 'production')
 app = create_app(env_name)
 
-# Attach WSGI middleware to app.wsgi_app to normalize PATH_INFO for Vercel rewrites
 original_wsgi_app = app.wsgi_app
 
 
-def vercel_wsgi_middleware(environ, start_response):
-    path = environ.get('PATH_INFO', '')
-    if path.startswith('/api/index'):
-        stripped = path[len('/api/index'):]
-        if not stripped or stripped == '/':
-            environ['PATH_INFO'] = '/'
-        else:
-            environ['PATH_INFO'] = stripped if stripped.startswith('/') else f"/{stripped}"
-        environ['REQUEST_URI'] = environ['PATH_INFO']
-        environ['RAW_URI'] = environ['PATH_INFO']
+def vercel_path_fixer(environ, start_response):
+    """
+    WSGI middleware that inspects Vercel's incoming request headers
+    (HTTP_X_VERCEL_URI, HTTP_X_MATCHED_PATH, REQUEST_URI)
+    to restore the true browser route and query parameters on Flask.
+    """
+    raw_uri = (
+        environ.get('HTTP_X_VERCEL_URI') or
+        environ.get('HTTP_X_MATCHED_PATH') or
+        environ.get('REQUEST_URI') or
+        environ.get('PATH_INFO', '')
+    )
+
+    if raw_uri and not raw_uri.startswith('/api/index'):
+        path_only = raw_uri.split('?')[0]
+        environ['PATH_INFO'] = path_only if path_only.startswith('/') else f"/{path_only}"
+        if '?' in raw_uri:
+            environ['QUERY_STRING'] = raw_uri.split('?', 1)[1]
+    elif raw_uri.startswith('/api/index'):
+        stripped = raw_uri[len('/api/index'):].split('?')[0]
+        environ['PATH_INFO'] = stripped if stripped.startswith('/') else (f"/{stripped}" if stripped else '/')
+        if '?' in raw_uri:
+            environ['QUERY_STRING'] = raw_uri.split('?', 1)[1]
+
     return original_wsgi_app(environ, start_response)
 
 
-app.wsgi_app = vercel_wsgi_middleware
+app.wsgi_app = vercel_path_fixer
