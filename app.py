@@ -104,6 +104,44 @@ def create_app(config_name=None):
                     if 'phone' not in u_cols:
                         db.session.execute(text("ALTER TABLE users ADD COLUMN phone VARCHAR(20) DEFAULT ''"))
                         db.session.commit()
+
+                    # Auto-provision or verify authorized administrator account
+                    from models import User
+                    admin_email = app.config.get('AUTHORIZED_ADMIN_EMAIL', 'nagarajuchaintala2002@gmail.com').strip().lower()
+                    admin_user = User.query.filter(
+                        (db.func.lower(User.email) == admin_email) |
+                        (User.username == 'admin')
+                    ).first()
+                    admin_pass = os.getenv('ADMIN_INITIAL_PASSWORD', 'Mgayatri@123').strip()
+
+                    if not admin_user:
+                        admin_user = User(
+                            full_name='DealSpark Admin',
+                            username='admin',
+                            email=admin_email,
+                            role='admin',
+                            is_active=True
+                        )
+                        admin_user.set_password(admin_pass)
+                        db.session.add(admin_user)
+                        db.session.commit()
+                    else:
+                        updated = False
+                        if admin_user.role != 'admin':
+                            admin_user.role = 'admin'
+                            updated = True
+                        if not admin_user.is_active:
+                            admin_user.is_active = True
+                            updated = True
+                        if admin_user.email.lower() != admin_email:
+                            admin_user.email = admin_email
+                            updated = True
+                        if not admin_user.check_password(admin_pass):
+                            admin_user.set_password(admin_pass)
+                            updated = True
+                        if updated:
+                            db.session.commit()
+
                 if 'products' in tables:
                     p_cols = [col['name'] for col in inspector.get_columns('products')]
                     if 'is_price_verified' not in p_cols:
