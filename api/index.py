@@ -23,17 +23,9 @@ def vercel_path_fixer(environ, start_response):
     WSGI middleware that normalizes PATH_INFO and SCRIPT_NAME for Vercel Serverless.
     """
     query_str = environ.get('QUERY_STRING', '')
-    if 'inspect_wsgi=1' in query_str:
+    if environ.get('HTTP_X_DEBUG_WSGI') or 'inspect_wsgi=1' in query_str:
         start_response('200 OK', [('Content-Type', 'application/json')])
-        env_debug = {
-            'PATH_INFO': environ.get('PATH_INFO'),
-            'SCRIPT_NAME': environ.get('SCRIPT_NAME'),
-            'QUERY_STRING': environ.get('QUERY_STRING'),
-            'RAW_URI': environ.get('RAW_URI'),
-            'REQUEST_URI': environ.get('REQUEST_URI'),
-            'HTTP_X_FORWARDED_PATH': environ.get('HTTP_X_FORWARDED_PATH'),
-            'HTTP_X_MATCHED_PATH': environ.get('HTTP_X_MATCHED_PATH'),
-        }
+        env_debug = {k: str(v) for k, v in environ.items() if not k.startswith('wsgi.')}
         return [json.dumps(env_debug, indent=2).encode('utf-8')]
 
     # Reset SCRIPT_NAME so Flask treats root path correctly
