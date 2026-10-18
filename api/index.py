@@ -11,26 +11,23 @@ from app import create_app
 
 # Instantiate Flask application for Vercel Serverless execution
 env_name = os.getenv('FLASK_ENV', 'production')
-flask_app = create_app(env_name)
+app = create_app(env_name)
+
+# Attach WSGI middleware to app.wsgi_app to normalize PATH_INFO for Vercel rewrites
+original_wsgi_app = app.wsgi_app
 
 
-class VercelWSGIWrapper:
-    """
-    WSGI middleware that strips '/api/index' from PATH_INFO if Vercel's rewrite engine
-    passes the serverless destination path instead of the user's browser URI.
-    """
-    def __init__(self, application):
-        self.application = application
-
-    def __call__(self, environ, start_response):
-        path = environ.get('PATH_INFO', '')
-        if path.startswith('/api/index'):
-            stripped = path[len('/api/index'):]
+def vercel_wsgi_middleware(environ, start_response):
+    path = environ.get('PATH_INFO', '')
+    if path.startswith('/api/index'):
+        stripped = path[len('/api/index'):]
+        if not stripped or stripped == '/':
+            environ['PATH_INFO'] = '/'
+        else:
             environ['PATH_INFO'] = stripped if stripped.startswith('/') else f"/{stripped}"
-            if not environ['PATH_INFO']:
-                environ['PATH_INFO'] = '/'
-        return self.application(environ, start_response)
+        environ['REQUEST_URI'] = environ['PATH_INFO']
+        environ['RAW_URI'] = environ['PATH_INFO']
+    return original_wsgi_app(environ, start_response)
 
 
-# Vercel entrypoint looks for 'app'
-app = VercelWSGIWrapper(flask_app)
+app.wsgi_app = vercel_wsgi_middleware

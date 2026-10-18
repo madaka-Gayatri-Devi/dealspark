@@ -6,6 +6,7 @@ from services.product_service import ProductService
 main_bp = Blueprint('main', __name__)
 
 
+@main_bp.route('/api/index')
 @main_bp.route('/')
 def index():
     """
