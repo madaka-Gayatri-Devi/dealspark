@@ -6,6 +6,21 @@ from services.product_service import ProductService
 main_bp = Blueprint('main', __name__)
 
 
+@main_bp.route('/api/debug-env')
+@main_bp.route('/debug-env')
+def debug_env():
+    return jsonify({
+        'PATH_INFO': request.environ.get('PATH_INFO'),
+        'REQUEST_URI': request.environ.get('REQUEST_URI'),
+        'HTTP_X_VERCEL_URI': request.environ.get('HTTP_X_VERCEL_URI'),
+        'HTTP_X_MATCHED_PATH': request.environ.get('HTTP_X_MATCHED_PATH'),
+        'QUERY_STRING': request.environ.get('QUERY_STRING'),
+        'request.path': request.path,
+        'request.url': request.url,
+        'http_headers': {k: str(v) for k, v in request.environ.items() if k.startswith('HTTP_')}
+    })
+
+
 @main_bp.route('/api/index')
 @main_bp.route('/')
 def index():
