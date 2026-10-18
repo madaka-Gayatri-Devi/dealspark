@@ -42,9 +42,13 @@ def create_app(config_name=None):
     # Context processors for templates
     @app.context_processor
     def inject_global_data():
-        active_cats = Category.query.filter_by(is_active=True).order_by(
-            Category.display_order.asc(), Category.name.asc()
-        ).limit(10).all() if db.session else []
+        active_cats = []
+        try:
+            active_cats = Category.query.filter_by(is_active=True).order_by(
+                Category.display_order.asc(), Category.name.asc()
+            ).limit(10).all()
+        except Exception:
+            active_cats = []
 
         user_fav_ids = set()
         from flask_login import current_user
@@ -76,27 +80,34 @@ def create_app(config_name=None):
                 args[k] = str(v)
         return urlencode(args)
 
-    # Ensure database schema is up-to-date (e.g. full_name, is_price_verified)
-    with app.app_context():
-        try:
-            from sqlalchemy import inspect, text
-            inspector = inspect(db.engine)
-            tables = inspector.get_table_names()
-            if 'users' in tables:
-                u_cols = [col['name'] for col in inspector.get_columns('users')]
-                if 'full_name' not in u_cols:
-                    db.session.execute(text("ALTER TABLE users ADD COLUMN full_name VARCHAR(120) DEFAULT '' NOT NULL"))
-                    db.session.commit()
-                if 'phone' not in u_cols:
-                    db.session.execute(text("ALTER TABLE users ADD COLUMN phone VARCHAR(20) DEFAULT ''"))
-                    db.session.commit()
-            if 'products' in tables:
-                p_cols = [col['name'] for col in inspector.get_columns('products')]
-                if 'is_price_verified' not in p_cols:
-                    db.session.execute(text("ALTER TABLE products ADD COLUMN is_price_verified BOOLEAN DEFAULT 0 NOT NULL"))
-                    db.session.commit()
-        except Exception:
-            pass
+    # Ensure database schema is up-to-date in non-testing environments
+    if not app.config.get('TESTING'):
+        with app.app_context():
+            try:
+                from sqlalchemy import inspect, text
+                inspector = inspect(db.engine)
+                tables = inspector.get_table_names()
+                if not tables or 'categories' not in tables:
+                    db.create_all()
+                    from scripts.init_db import run_seed
+                    run_seed()
+                    inspector = inspect(db.engine)
+                    tables = inspector.get_table_names()
+                if 'users' in tables:
+                    u_cols = [col['name'] for col in inspector.get_columns('users')]
+                    if 'full_name' not in u_cols:
+                        db.session.execute(text("ALTER TABLE users ADD COLUMN full_name VARCHAR(120) DEFAULT '' NOT NULL"))
+                        db.session.commit()
+                    if 'phone' not in u_cols:
+                        db.session.execute(text("ALTER TABLE users ADD COLUMN phone VARCHAR(20) DEFAULT ''"))
+                        db.session.commit()
+                if 'products' in tables:
+                    p_cols = [col['name'] for col in inspector.get_columns('products')]
+                    if 'is_price_verified' not in p_cols:
+                        db.session.execute(text("ALTER TABLE products ADD COLUMN is_price_verified BOOLEAN DEFAULT 0 NOT NULL"))
+                        db.session.commit()
+            except Exception:
+                pass
 
     # Register CLI commands
     register_cli_commands(app)
@@ -119,7 +130,10 @@ def register_error_handlers(app):
 
     @app.errorhandler(500)
     def internal_error(error):
-        db.session.rollback()
+        try:
+            db.session.rollback()
+        except Exception:
+            pass
         return render_template('errors/500.html', error=error), 500
 
 

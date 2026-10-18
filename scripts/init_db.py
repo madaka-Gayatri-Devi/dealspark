@@ -56,6 +56,200 @@ def run_seed():
 
     db.session.commit()
 
+    # Baseline Verified Deals
+    from models import Product
+    if Product.query.first() is None:
+        initial_products = [
+            {
+                "title": "Rockerz 450 Wireless Bluetooth Headphone",
+                "slug": "rockerz-450-wireless-bluetooth-headphone",
+                "description": "",
+                "image_url": "https://m.media-amazon.com/images/I/61SUj2aKoEL._SL1500_.jpg",
+                "category_name": "Electronics",
+                "merchant_name": "Amazon India",
+                "merchant_product_url": "https://www.amazon.in/Rockerz-450-Wireless-Bluetooth-Headphone/dp/B07PR1CL3S",
+                "affiliate_url": "https://www.amazon.in/Rockerz-450-Wireless-Bluetooth-Headphone/dp/B07PR1CL3S",
+                "original_price": 3990.0,
+                "discounted_price": 1299.0,
+                "is_published": True,
+                "is_featured": False,
+                "is_trending": False
+            },
+            {
+                "title": "GoSriKi Women's Anarkali Viscose BAHURUP Lavender Kurta Set",
+                "slug": "gosriki-womens-anarkali-viscose-bahurup-lavender-kurta-set",
+                "description": "Women's lavender Anarkali viscose kurta set. Verify the included garments, fabric details, available sizes, and current price on Amazon before publishing.",
+                "image_url": "https://m.media-amazon.com/images/I/61TKvc11RYL._SX569_.jpg",
+                "category_name": "Fashion & Clothing",
+                "merchant_name": "Amazon India",
+                "merchant_product_url": "https://www.amazon.in/dp/B0HHX89YHM",
+                "affiliate_url": "https://www.amazon.in/dp/B0HHX89YHM?tag=dealspark0e-21",
+                "original_price": 2599.0,
+                "discounted_price": 2100.0,
+                "is_published": True,
+                "is_featured": False,
+                "is_trending": False
+            },
+            {
+                "title": "Celary Womens Kurtas Printed Straight",
+                "slug": "celary-womens-kurtas-printed-straight",
+                "description": "",
+                "image_url": "https://m.media-amazon.com/images/I/61zv-gYxr9L._SY741_.jpg",
+                "category_name": "Fashion & Clothing",
+                "merchant_name": "Amazon India",
+                "merchant_product_url": "https://www.amazon.in/dp/B0H1D2L5FY",
+                "affiliate_url": "https://www.amazon.in/dp/B0H1D2L5FY?tag=dealspark0e-21",
+                "original_price": 2599.0,
+                "discounted_price": 789.0,
+                "is_published": True,
+                "is_featured": False,
+                "is_trending": False
+            },
+            {
+                "title": "Amazon Brand Tavasya Straight Comfortable",
+                "slug": "amazon-brand-tavasya-straight-comfortable",
+                "description": "",
+                "image_url": "https://m.media-amazon.com/images/I/51LT4nvMmRL._SY741_.jpg",
+                "category_name": "Fashion & Clothing",
+                "merchant_name": "Amazon India",
+                "merchant_product_url": "https://www.amazon.in/dp/B0GV3PRTZM",
+                "affiliate_url": "https://www.amazon.in/dp/B0GV3PRTZM?tag=dealspark0e-21",
+                "original_price": 2599.0,
+                "discounted_price": 689.0,
+                "is_published": True,
+                "is_featured": False,
+                "is_trending": False
+            },
+            {
+                "title": "Amazon Deal (ASIN: B0D7PS5MYH)",
+                "slug": "amazon-deal-asin-b0d7ps5myh",
+                "description": "",
+                "image_url": "https://m.media-amazon.com/images/I/71nqelmB-pL._SX569_.jpg",
+                "category_name": "Fashion & Clothing",
+                "merchant_name": "Amazon India",
+                "merchant_product_url": "https://www.amazon.in/dp/B0D7PS5MYH",
+                "affiliate_url": "https://www.amazon.in/dp/B0D7PS5MYH?tag=dealspark0e-21",
+                "original_price": 2599.0,
+                "discounted_price": 769.0,
+                "is_published": True,
+                "is_featured": False,
+                "is_trending": False
+            },
+            {
+                "title": "Yashika Womens Printed Minali Mustard Free",
+                "slug": "yashika-womens-printed-minali-mustard-free",
+                "description": "",
+                "image_url": "https://m.media-amazon.com/images/I/91z8vt1r4rL._SY741_.jpg",
+                "category_name": "Fashion & Clothing",
+                "merchant_name": "Amazon India",
+                "merchant_product_url": "https://www.amazon.in/dp/B09ZLMK2Q5",
+                "affiliate_url": "https://www.amazon.in/dp/B09ZLMK2Q5?tag=dealspark0e-21",
+                "original_price": 3000.0,
+                "discounted_price": 1500.0,
+                "is_published": True,
+                "is_featured": False,
+                "is_trending": False
+            },
+            {
+                "title": "Amazon Deal (ASIN: B0FCCH9D1V)",
+                "slug": "amazon-deal-asin-b0fcch9d1v",
+                "description": "",
+                "image_url": "https://m.media-amazon.com/images/I/713HSky6kVL._SX679_.jpg",
+                "category_name": "Fashion & Clothing",
+                "merchant_name": "Amazon India",
+                "merchant_product_url": "https://www.amazon.in/dp/B0FCCH9D1V",
+                "affiliate_url": "https://www.amazon.in/dp/B0FCCH9D1V?tag=dealspark0e-21",
+                "original_price": 3500.0,
+                "discounted_price": 1699.0,
+                "is_published": True,
+                "is_featured": False,
+                "is_trending": False
+            },
+            {
+                "title": "Boat Rockerz 480 Bluetooth Headphones",
+                "slug": "boat-rockerz-480-bluetooth-headphones",
+                "description": "",
+                "image_url": "https://m.media-amazon.com/images/I/61cIHzCDl6L._SY450_.jpg",
+                "category_name": "Electronics",
+                "merchant_name": "Amazon India",
+                "merchant_product_url": "https://www.amazon.in/dp/B0DGTTKCJX",
+                "affiliate_url": "https://www.amazon.in/dp/B0DGTTKCJX?tag=dealspark0e-21",
+                "original_price": 1500.0,
+                "discounted_price": 1399.0,
+                "is_published": True,
+                "is_featured": False,
+                "is_trending": False
+            },
+            {
+                "title": "Boat Headphone Lightweight Bluetooth Bubblegum",
+                "slug": "boat-headphone-lightweight-bluetooth-bubblegum",
+                "description": "",
+                "image_url": "https://m.media-amazon.com/images/I/614CDPXmolL._SY450_.jpg",
+                "category_name": "Electronics",
+                "merchant_name": "Amazon India",
+                "merchant_product_url": "https://www.amazon.in/dp/B0H1WXV25D",
+                "affiliate_url": "https://www.amazon.in/dp/B0H1WXV25D?tag=dealspark0e-21",
+                "original_price": 1600.0,
+                "discounted_price": 1499.0,
+                "is_published": True,
+                "is_featured": False,
+                "is_trending": False
+            },
+            {
+                "title": "Oneplus Playback Translation Dual Device Connectivity",
+                "slug": "oneplus-playback-translation-dual-device-connectivity",
+                "description": "",
+                "image_url": "https://m.media-amazon.com/images/I/51nBTTG3hNL._SY450_.jpg",
+                "category_name": "Mobiles & Accessories",
+                "merchant_name": "Amazon India",
+                "merchant_product_url": "https://www.amazon.in/dp/B0FMDL81GS",
+                "affiliate_url": "https://www.amazon.in/dp/B0FMDL81GS?tag=dealspark0e-21",
+                "original_price": 1900.0,
+                "discounted_price": 1799.0,
+                "is_published": True,
+                "is_featured": False,
+                "is_trending": False
+            },
+            {
+                "title": "Boat Rockerz 650 Pro Headphones",
+                "slug": "boat-rockerz-650-pro-headphones",
+                "description": "",
+                "image_url": "https://m.media-amazon.com/images/I/61-XNG5lPBL._SY450_.jpg",
+                "category_name": "Electronics",
+                "merchant_name": "Amazon India",
+                "merchant_product_url": "https://www.amazon.in/dp/B0DV5J28LW",
+                "affiliate_url": "https://www.amazon.in/dp/B0DV5J28LW?tag=dealspark0e-21",
+                "original_price": 3000.0,
+                "discounted_price": 2500.0,
+                "is_published": True,
+                "is_featured": False,
+                "is_trending": False
+            }
+        ]
+        for p_data in initial_products:
+            cat = Category.query.filter_by(name=p_data['category_name']).first()
+            merch = Merchant.query.filter_by(name=p_data['merchant_name']).first()
+            if cat and merch:
+                prod = Product(
+                    title=p_data['title'],
+                    slug=p_data['slug'],
+                    description=p_data['description'],
+                    image_url=p_data['image_url'],
+                    category_id=cat.id,
+                    merchant_id=merch.id,
+                    merchant_product_url=p_data['merchant_product_url'],
+                    affiliate_url=p_data['affiliate_url'],
+                    original_price=p_data['original_price'],
+                    discounted_price=p_data['discounted_price'],
+                    is_published=p_data['is_published'],
+                    is_featured=p_data['is_featured'],
+                    is_trending=p_data['is_trending'],
+                    is_available=True,
+                    is_price_verified=True
+                )
+                db.session.add(prod)
+        db.session.commit()
+
 
 if __name__ == '__main__':
     from app import create_app

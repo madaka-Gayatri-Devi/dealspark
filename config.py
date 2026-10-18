@@ -25,6 +25,13 @@ def get_database_uri():
     db_port = os.getenv('DB_PORT', '3306').strip()
     db_name = os.getenv('DB_NAME', 'dealspark').strip()
 
+    # In serverless environments like Vercel, if DATABASE_URL is not set,
+    # safely use temp SQLite to avoid fatal crashes trying to connect to localhost:3306
+    if os.getenv('VERCEL') or os.getenv('AWS_LAMBDA_FUNCTION_NAME'):
+        import tempfile
+        tmp_db = Path(tempfile.gettempdir()) / 'dealspark.db'
+        return f"sqlite:///{tmp_db}"
+
     flask_env = os.getenv('FLASK_ENV', 'development').strip().lower()
     default_fallback = 'false' if flask_env == 'production' else 'true'
     allow_fallback = os.getenv('DB_ALLOW_SQLITE_FALLBACK', default_fallback).lower() in ('true', '1', 'yes')
