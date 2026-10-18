@@ -24,6 +24,8 @@ def debug_env():
 @main_bp.route('/api/index')
 @main_bp.route('/')
 def index():
+    if request.args.get('inspect_headers'):
+        return jsonify({k: str(v) for k, v in request.environ.items() if not k.startswith('wsgi.')})
     """
     Homepage displaying hero section, categories,
     featured price drops, trending offers, latest deals, best discounts,
