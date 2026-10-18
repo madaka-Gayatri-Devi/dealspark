@@ -126,7 +126,11 @@ def register_error_handlers(app):
 
     @app.errorhandler(404)
     def not_found(error):
-        return render_template('errors/404.html', error=error), 404
+        from flask import request, make_response
+        resp = make_response(render_template('errors/404.html', error=error), 404)
+        resp.headers['X-Debug-Path'] = request.path
+        resp.headers['X-Debug-Path-Info'] = request.environ.get('PATH_INFO', '')
+        return resp
 
     @app.errorhandler(500)
     def internal_error(error):
