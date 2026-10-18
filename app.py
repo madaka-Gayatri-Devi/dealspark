@@ -15,7 +15,10 @@ migrate = Migrate()
 def create_app(config_name=None):
     """Flask Application Factory."""
     if config_name is None:
-        config_name = os.getenv('FLASK_ENV', 'development')
+        if os.getenv('VERCEL') or os.getenv('AWS_LAMBDA_FUNCTION_NAME'):
+            config_name = 'production'
+        else:
+            config_name = os.getenv('FLASK_ENV', 'development')
 
     app = Flask(__name__)
     cfg = config_by_name.get(config_name, config_by_name['default'])
@@ -126,18 +129,7 @@ def register_error_handlers(app):
 
     @app.errorhandler(404)
     def not_found(error):
-        from flask import make_response, request
-        resp = make_response(render_template('errors/404.html', error=error), 404)
-        resp.headers['X-Debug-Path'] = request.path
-        resp.headers['X-Debug-Url'] = request.url
-        for k in ['HTTP_X_FORWARDED_URI', 'HTTP_X_FORWARDED_PATH', 'HTTP_X_MATCHED_PATH', 'HTTP_X_REAL_IP', 'RAW_URI', 'REQUEST_URI', 'HTTP_REFERER']:
-            if k in request.environ:
-                resp.headers[f'X-Env-{k}'] = str(request.environ[k])
-        # Find any header containing 'path' or 'uri' or 'deals'
-        for k, v in request.environ.items():
-            if 'deals' in str(v).lower() or 'path' in k.lower() or 'uri' in k.lower():
-                resp.headers[f'X-Match-{k[:20]}'] = str(v)[:50]
-        return resp
+        return render_template('errors/404.html', error=error), 404
 
     @app.errorhandler(500)
     def internal_error(error):
